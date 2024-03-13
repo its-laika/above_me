@@ -10,7 +10,7 @@ The last step is a website (or app) which gets your position and returns the lis
 Heavily WIP, just started.
 
 ## License
-This code is licensed under the MIT-License (see _LICENSE.md_).
+This code is licensed under the MIT-License (see [LICENSE](LICENSE)).
 Before using this, make sure to not violate against OGN rules!
 
 - [OGN data usage](https://www.glidernet.org/ogn-data-usage/)
