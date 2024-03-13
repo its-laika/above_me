@@ -4,6 +4,7 @@ use aprs::{init_aprs_client, ClientConfig};
 use server::start_dummy_server;
 use tokio::{sync::mpsc, task::JoinSet};
 
+mod api;
 mod aprs;
 mod server;
 
@@ -21,7 +22,7 @@ async fn main() {
         let _ = start_dummy_server(address, message, duration).await;
     });
 
-    let (message_tx, mut message_rx) = mpsc::channel(32);
+    let (message_tx, message_rx) = mpsc::channel(32);
 
     join_set.spawn(async move {
         let config = ClientConfig {
@@ -34,9 +35,7 @@ async fn main() {
     });
 
     join_set.spawn(async move {
-        while let Some(message) = message_rx.recv().await {
-            println!("Client got message: '{}'", message);
-        }
+        let _ = api::router::init_api_server(&"127.0.0.1:8080", message_rx).await;
     });
 
     while (join_set.join_next().await).is_some() { /* */ }
