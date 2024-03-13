@@ -1,10 +1,10 @@
 use std::time::Duration;
 
-use client::init_tcp_client;
+use aprs::{init_aprs_client, ClientConfig};
 use server::start_dummy_server;
 use tokio::{sync::mpsc, task::JoinSet};
 
-mod client;
+mod aprs;
 mod server;
 
 #[tokio::main]
@@ -21,11 +21,16 @@ async fn main() {
         let _ = start_dummy_server(address, message, duration).await;
     });
 
-    let address = "127.0.0.1:9000";
     let (message_tx, mut message_rx) = mpsc::channel(32);
 
     join_set.spawn(async move {
-        let _ = init_tcp_client(address, message_tx).await;
+        let config = ClientConfig {
+            address: "127.0.0.1:9000",
+            user_name: "N0SIGN",
+            password: "-1",
+        };
+
+        let _ = init_aprs_client(&config, message_tx).await;
     });
 
     join_set.spawn(async move {

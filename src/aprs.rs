@@ -1,36 +1,70 @@
 use std::io::{Error, ErrorKind};
 
 use tokio::{
-    io::AsyncReadExt,
+    io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
     sync::mpsc::Sender,
 };
 
 const MAX_MESSAGE_SIZE: usize = 256;
+const CLIENT_ID: &str = "above_me-client 0.1";
 
-/// Initiates a `TcpClient` that connects to given address and transmits incoming messages.
-/// Will send a keep alive message based on `message_tx` changes.
-///
-/// # Arguments
-///
-/// * `address` - Address to connect to
-/// * `message_tx` - A `Sender` that will send incoming messages from the server
+/// Configuration for connecting to an APRS server
 ///
 /// # Examples
 ///
 /// ```
-/// use tokio::sync::mpsc;
-///
-/// let address = "127.0.0.1:9000";
-/// let (message_tx, _message_rx) = mpsc::channel(32);
-///
-/// let _ = init_tcp_client(address, message_tx).await;
+/// let config = aprs::ClientConfig {
+///     address: "aprs.example.com",
+///     user_name: "MYC4LLS1GN",
+///     password: "************",
+///};
 /// ```
-pub async fn init_tcp_client<A: ToSocketAddrs>(
-    address: A,
+pub struct ClientConfig<'a, A: ToSocketAddrs> {
+    /// Address to connect to, e.g. "aprs.example.com"
+    pub address: A,
+    /// User name for authentication
+    pub user_name: &'a str,
+    /// Password for authentication
+    pub password: &'a str,
+}
+
+/// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming messages.
+/// Sends incoming APRS messages via `message_tx`.
+///
+/// # Arguments
+///
+/// * `config` - Information on where to connect & login
+/// * `message_tx` - A `Sender<String>` that will send incoming messages from the server
+///
+/// # Examples
+///
+/// ```
+/// let config = aprs::ClientConfig {
+///     address: "aprs.example.com",
+///     user_name: "MYC4LLS1GN",
+///     password: "************",
+///};
+///
+/// let (message_tx, _message_rx) = tokio::sync::mpsc::channel(32);
+///
+/// /* Listen to `_message_rx` messages heree... */
+///
+/// let _ = aprs::init_aprs_client(&config, message_tx).await?;
+/// ```
+pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
+    config: &ClientConfig<'a, A>,
     message_tx: Sender<String>,
 ) -> Result<(), Error> {
-    let mut tcp_stream = TcpStream::connect(address).await?;
+    let mut tcp_stream = TcpStream::connect(&config.address).await?;
+
+    /* Login to server */
+    let login_message = format!(
+        "user {} pass {} vers {}",
+        config.user_name, config.password, CLIENT_ID
+    );
+
+    tcp_stream.write_all(login_message.as_bytes()).await?;
 
     loop {
         let data = read_limited(&mut tcp_stream).await?;
