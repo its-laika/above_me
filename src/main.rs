@@ -2,11 +2,7 @@ use std::time::Duration;
 
 use client::init_tcp_client;
 use server::start_dummy_server;
-use tokio::{
-    sync::{mpsc, watch},
-    task::JoinSet,
-    time::interval,
-};
+use tokio::{sync::mpsc, task::JoinSet};
 
 mod client;
 mod server;
@@ -26,21 +22,10 @@ async fn main() {
     });
 
     let address = "127.0.0.1:9000";
-    let (keep_alive_tx, keep_alive_rx) = watch::channel(());
     let (message_tx, mut message_rx) = mpsc::channel(32);
 
     join_set.spawn(async move {
-        let _ = init_tcp_client(address, keep_alive_rx, message_tx).await;
-    });
-
-    /* Make sure to trigger a keep alive to the server every 10 minutes to not lose connection. */
-    join_set.spawn(async move {
-        let mut interval = interval(Duration::from_secs(60 * 10));
-
-        loop {
-            interval.tick().await;
-            keep_alive_tx.send(()).unwrap();
-        }
+        let _ = init_tcp_client(address, message_tx).await;
     });
 
     join_set.spawn(async move {
