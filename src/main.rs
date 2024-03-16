@@ -27,7 +27,7 @@ async fn main() {
      * This will be obsolete at one point. */
     join_set.spawn(async move {
         let address = "127.0.0.1:9000";
-        let line = "TODO".as_bytes().to_vec();
+        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0ADDE626 -019fpm +0.0rot 5.5dB 3e -4.3kHz".as_bytes().to_vec();
         let duration = Duration::from_secs(2);
 
         let _ = start_dummy_server(address, line, duration).await;
