@@ -12,8 +12,8 @@ use tokio::{
     sync::mpsc::Sender,
 };
 
-const MAX_MESSAGE_SIZE: usize = 256;
-const CLIENT_ID: &str = "above_me-client 0.1";
+const MAX_MESSAGE_SIZE: usize = 4096;
+const CLIENT_ID: &str = "above_me_client 0.1";
 const IDENTIFIER_COMMENT: char = '#';
 const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 
@@ -35,6 +35,8 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
     pub user_name: &'a str,
     /// Password for authentication
     pub password: &'a str,
+    /// APRS filter that will be applied
+    pub filter: &'a str,
 }
 
 /// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming aircraft states.
@@ -71,8 +73,8 @@ pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
 
     /* Login to server */
     let login_message = format!(
-        "user {} pass {} vers {}",
-        config.user_name, config.password, CLIENT_ID
+        "user {} pass {} vers {} filter {}\n",
+        config.user_name, config.password, CLIENT_ID, config.filter
     );
 
     tcp_stream.write_all(login_message.as_bytes()).await?;

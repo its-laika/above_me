@@ -1,15 +1,12 @@
 use api::init_api_server;
 use aprs::{init_aprs_client, ClientConfig};
 use ddb::fetch_aircrafts;
-use server::start_dummy_server;
-use std::time::Duration;
-use tokio::{sync::mpsc, task::JoinSet};
+use tokio::sync::{mpsc, oneshot};
 
 mod api;
 mod aprs;
 mod ddb;
 mod mutex;
-mod server;
 
 #[tokio::main]
 async fn main() {
@@ -21,20 +18,10 @@ async fn main() {
         }
     };
 
-    let mut join_set = JoinSet::new();
-
-    /* Create a dummy server that will feed us with APRS lines.
-     * This will be obsolete at one point. */
-    join_set.spawn(async move {
-        let address = "127.0.0.1:9000";
-        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0ADDE626 -019fpm +0.0rot 5.5dB 3e -4.3kHz".as_bytes().to_vec();
-        let duration = Duration::from_secs(2);
-
-        let _ = start_dummy_server(address, line, duration).await;
-    });
-
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
     let (status_tx, status_rx) = mpsc::channel(32);
-    let mut server_handle = match init_api_server(&"127.0.0.1:8080", status_rx).await {
+
+    let mut server_handle = match init_api_server(&"127.0.0.1:8080", status_rx, shutdown_rx).await {
         Ok(s) => s,
         Err(e) => {
             println!("Could not start API server: {}", e);
@@ -42,17 +29,18 @@ async fn main() {
         }
     };
 
-    join_set.spawn(async move {
-        let config = ClientConfig {
-            address: "127.0.0.1:9000",
-            user_name: "N0SIGN",
-            password: "-1",
-        };
+    let config = ClientConfig {
+        address: "...",
+        user_name: "...",
+        password: "...",
+        filter: "...",
+    };
 
-        let _ = init_aprs_client(&config, status_tx, &aircrafts).await;
-    });
+    if let Err(e) = init_aprs_client(&config, status_tx, &aircrafts).await {
+        println!("Client stopped with error: {}", e);
+    }
 
-    while (join_set.join_next().await).is_some() {}
+    shutdown_tx.send(()).unwrap();
 
     while server_handle.join_next().await.is_some() {}
 }

@@ -4,11 +4,16 @@ use crate::mutex::get_locked;
 use super::handler::default_handler;
 use axum::{routing::get, Router};
 use std::io::Error;
-use tokio::{net::ToSocketAddrs, sync::mpsc::Receiver, task::JoinSet};
+use tokio::{
+    net::ToSocketAddrs,
+    sync::{mpsc, oneshot},
+    task::JoinSet,
+};
 
 pub async fn init_api_server<'a, A: ToSocketAddrs>(
     address: &A,
-    mut status_rx: Receiver<Status>,
+    mut status_rx: mpsc::Receiver<Status>,
+    shutdown_rx: oneshot::Receiver<()>,
 ) -> Result<JoinSet<()>, Error> {
     let mut join_set = JoinSet::new();
 
@@ -28,7 +33,11 @@ pub async fn init_api_server<'a, A: ToSocketAddrs>(
     let listener = tokio::net::TcpListener::bind(address).await?;
 
     join_set.spawn(async move {
-        let _ = axum::serve(listener, app).await;
+        let _ = axum::serve(listener, app)
+            .with_graceful_shutdown(async {
+                shutdown_rx.await.ok();
+            })
+            .await;
     });
 
     Ok(join_set)
