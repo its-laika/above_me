@@ -1,7 +1,6 @@
 use crate::aprs::Status;
-use crate::mutex::get_locked;
 
-use super::handler::default_handler;
+use super::{handler::default_handler, state::update_app_state};
 use axum::{routing::get, Router};
 use std::io::Error;
 use tokio::{
@@ -22,7 +21,7 @@ pub async fn init_api_server<'a, A: ToSocketAddrs>(
 
     join_set.spawn(async move {
         while let Some(status) = status_rx.recv().await {
-            get_locked(&update_state.states).insert(status.aircraft.call_sign.clone(), status);
+            update_app_state(status, &update_state).await;
         }
     });
 

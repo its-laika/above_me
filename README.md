@@ -7,7 +7,8 @@ Via API you can then request the list gliders near a given position.
 The last step is a website (or app) which gets your position and returns the list of gliders right above you.
 
 ## Status
-Heavily WIP, just started.
+Basic API works, next steps are testing and improvements.
+When the API looks stable, frontend will be the next step.
 
 ## License
 This code is licensed under the MIT-License (see [LICENSE](LICENSE)).
