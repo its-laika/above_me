@@ -1,5 +1,6 @@
+use super::conversion::convert;
+use super::status::Status;
 use std::io::{Error, ErrorKind};
-
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
@@ -29,13 +30,13 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
     pub password: &'a str,
 }
 
-/// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming messages.
-/// Sends incoming APRS messages via `message_tx`.
+/// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming aircraft states.
+/// Sends incoming APRS states via `status_tx`.
 ///
 /// # Arguments
 ///
 /// * `config` - Information on where to connect & login
-/// * `message_tx` - A `Sender<String>` that will send incoming messages from the server
+/// * `status_tx` - A `Sender<String>` that will send incoming states from the server
 ///
 /// # Examples
 ///
@@ -46,15 +47,15 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
 ///     password: "************",
 ///};
 ///
-/// let (message_tx, _message_rx) = tokio::sync::mpsc::channel(32);
+/// let (status_tx, _status_rx) = tokio::sync::mpsc::channel(32);
 ///
-/// /* Listen to `_message_rx` messages heree... */
+/// /* Listen to `_status_rx` states here... */
 ///
-/// let _ = aprs::init_aprs_client(&config, message_tx).await?;
+/// let _ = aprs::init_aprs_client(&config, status_tx).await?;
 /// ```
 pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
     config: &ClientConfig<'a, A>,
-    message_tx: Sender<String>,
+    status_tx: Sender<Status>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
 
@@ -73,15 +74,17 @@ pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
             return Ok(());
         }
 
-        let message = String::from_utf8(data).or(Err(Error::new(
+        let line = String::from_utf8(data).or(Err(Error::new(
             ErrorKind::InvalidData,
             "Data not valid UTF-8",
         )))?;
 
-        message_tx
-            .send(message)
-            .await
-            .or(Err(Error::new(ErrorKind::Other, "Could not use message")))?;
+        if let Some(status) = convert(&line).await {
+            status_tx
+                .send(status)
+                .await
+                .or(Err(Error::new(ErrorKind::Other, "Could not send status")))?;
+        }
     }
 }
 

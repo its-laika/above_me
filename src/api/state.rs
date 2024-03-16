@@ -1,19 +1,17 @@
-use std::sync::{Arc, Mutex};
+use crate::aprs::Status;
+
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 pub fn create_app_state() -> AppState {
     AppState {
-        api_state: Arc::new(Mutex::new(ApiState {
-            message: String::new(),
-        })),
+        states: Arc::new(Mutex::new(HashMap::new())),
     }
 }
 
 #[derive(Clone)]
 pub struct AppState {
-    pub api_state: Arc<Mutex<ApiState>>,
-}
-
-#[derive(Clone)]
-pub struct ApiState {
-    pub message: String,
+    pub states: Arc<Mutex<HashMap<String, Status>>>,
 }

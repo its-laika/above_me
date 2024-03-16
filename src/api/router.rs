@@ -1,3 +1,6 @@
+use crate::aprs::Status;
+use crate::mutex::get_locked;
+
 use super::handler::default_handler;
 use axum::{routing::get, Router};
 use std::io::Error;
@@ -5,17 +8,16 @@ use tokio::{net::ToSocketAddrs, sync::mpsc::Receiver, task::JoinSet};
 
 pub async fn init_api_server<'a, A: ToSocketAddrs>(
     address: &A,
-    mut message_rx: Receiver<String>,
-) -> Result<(), Error> {
+    mut status_rx: Receiver<Status>,
+) -> Result<JoinSet<()>, Error> {
     let mut join_set = JoinSet::new();
 
     let state = super::state::create_app_state();
     let update_state = state.clone();
 
     join_set.spawn(async move {
-        while let Some(new_message) = message_rx.recv().await {
-            let mut message = update_state.api_state.lock().expect("Mutex was poisoned");
-            message.message = new_message;
+        while let Some(status) = status_rx.recv().await {
+            get_locked(&update_state.states).insert(status.aircraft.call_sign.clone(), status);
         }
     });
 
@@ -29,7 +31,5 @@ pub async fn init_api_server<'a, A: ToSocketAddrs>(
         let _ = axum::serve(listener, app).await;
     });
 
-    while (join_set.join_next().await).is_some() { /* */ }
-
-    Ok(())
+    Ok(join_set)
 }
