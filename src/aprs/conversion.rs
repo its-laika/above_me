@@ -1,11 +1,8 @@
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
-use std::{
-    collections::HashMap,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::collections::HashMap;
 
-use crate::ddb::AircraftId;
+use crate::{ddb::AircraftId, time::get_current_timestamp};
 
 use super::status::{Aircraft, Position, Status};
 
@@ -53,10 +50,7 @@ pub async fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> O
         None => return None,
     };
 
-    let time_stamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Could not get unix timestamp")
-        .as_secs();
+    let time_stamp = get_current_timestamp();
 
     let status = Status {
         aircraft,

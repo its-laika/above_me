@@ -1,12 +1,10 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use axum::{
     extract::{Path, State},
     Json,
 };
 
 use super::{state::AppState, MAX_AGE_DIFF, POSITION_RADIUS};
-use crate::{aprs::Status, mutex::get_locked};
+use crate::{aprs::Status, mutex::get_locked, time::get_current_timestamp};
 use serde::Serialize;
 
 /// Handler for the "default" route that returns a list of aircraft for a given position
@@ -49,12 +47,7 @@ fn filter_status(status: &Status, latitude: f32, longitude: f32) -> bool {
         return false;
     }
 
-    let current_timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Could not get unix timestamp")
-        .as_secs();
-
-    if current_timestamp - status.time_stamp > MAX_AGE_DIFF {
+    if get_current_timestamp() - status.time_stamp > MAX_AGE_DIFF {
         return false;
     }
 
