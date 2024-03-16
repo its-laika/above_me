@@ -1,6 +1,11 @@
-use super::conversion::convert;
+use crate::ddb::AircraftId;
+
 use super::status::Status;
-use std::io::{Error, ErrorKind};
+use super::{conversion::convert, Aircraft};
+use std::{
+    collections::HashMap,
+    io::{Error, ErrorKind},
+};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpStream, ToSocketAddrs},
@@ -37,6 +42,7 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
 ///
 /// * `config` - Information on where to connect & login
 /// * `status_tx` - A `Sender<String>` that will send incoming states from the server
+/// * `aircrafts` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
 ///
 /// # Examples
 ///
@@ -48,14 +54,16 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
 ///};
 ///
 /// let (status_tx, _status_rx) = tokio::sync::mpsc::channel(32);
+/// let aircrafts: std::collections::HashMap<ddb::AircraftId, aprs::Aircraft> = std::collections::HashMap::new();
 ///
 /// /* Listen to `_status_rx` states here... */
 ///
-/// let _ = aprs::init_aprs_client(&config, status_tx).await?;
+/// let _ = aprs::init_aprs_client(&config, status_tx, &aircrafts).await?;
 /// ```
 pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
     config: &ClientConfig<'a, A>,
     status_tx: Sender<Status>,
+    aircrafts: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
 
@@ -79,7 +87,11 @@ pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
             "Data not valid UTF-8",
         )))?;
 
-        if let Some(status) = convert(&line).await {
+        if let Some(status) = convert(&line, aircrafts).await {
+            if !status.aircraft.visible {
+                continue;
+            }
+
             status_tx
                 .send(status)
                 .await

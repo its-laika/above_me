@@ -1,16 +1,26 @@
 use api::init_api_server;
 use aprs::{init_aprs_client, ClientConfig};
+use ddb::fetch_aircrafts;
 use server::start_dummy_server;
 use std::time::Duration;
 use tokio::{sync::mpsc, task::JoinSet};
 
 mod api;
 mod aprs;
+mod ddb;
 mod mutex;
 mod server;
 
 #[tokio::main]
 async fn main() {
+    let aircrafts = match fetch_aircrafts().await {
+        Ok(a) => a,
+        Err(e) => {
+            println!("Could not fetch aircraft data: {}", e);
+            return;
+        }
+    };
+
     let mut join_set = JoinSet::new();
 
     /* Create a dummy server that will feed us with APRS lines.
@@ -39,7 +49,7 @@ async fn main() {
             password: "-1",
         };
 
-        let _ = init_aprs_client(&config, status_tx).await;
+        let _ = init_aprs_client(&config, status_tx, &aircrafts).await;
     });
 
     while (join_set.join_next().await).is_some() {}
