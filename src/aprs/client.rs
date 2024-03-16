@@ -14,6 +14,8 @@ use tokio::{
 
 const MAX_MESSAGE_SIZE: usize = 256;
 const CLIENT_ID: &str = "above_me-client 0.1";
+const IDENTIFIER_COMMENT: char = '#';
+const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 
 /// Configuration for connecting to an APRS server
 ///
@@ -86,6 +88,10 @@ pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
             ErrorKind::InvalidData,
             "Data not valid UTF-8",
         )))?;
+
+        if line.starts_with(IDENTIFIER_COMMENT) || line.starts_with(IDENTIFIER_TCP_PACKET) {
+            continue;
+        }
 
         if let Some(status) = convert(&line, aircrafts).await {
             if !status.aircraft.visible {
