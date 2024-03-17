@@ -14,7 +14,6 @@ use tokio::{
 };
 
 const MAX_MESSAGE_SIZE: usize = 4096;
-const CLIENT_ID: &str = "above_me_client 0.1";
 const IDENTIFIER_COMMENT: char = '#';
 const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 
@@ -37,8 +36,10 @@ pub struct ClientConfig<A: ToSocketAddrs> {
     pub user_name: String,
     /// Password for authentication
     pub password: String,
+    /// Name of the application
+    pub client_id: String,
     /// APRS filter that will be applied
-    pub filter: String,
+    pub filter: Option<String>,
 }
 
 /// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming aircraft states.
@@ -74,45 +75,53 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
 
     /* Login to server */
-    let login_message = format!(
-        "user {} pass {} vers {} filter {}\n",
-        config.user_name, config.password, CLIENT_ID, config.filter
-    );
+    let login_message = if let Some(filter) = &config.filter {
+        format!(
+            "user {} pass {} vers {} filter {}\n",
+            config.user_name, config.password, config.client_id, filter
+        )
+    } else {
+        format!(
+            "user {} pass {} vers {}\n",
+            config.user_name, config.password, config.client_id
+        )
+    };
 
     tcp_stream.write_all(login_message.as_bytes()).await?;
 
     loop {
-        let data = read_limited(&mut tcp_stream).await?;
-        if data.is_empty() {
-            /* Connection closed. */
-            return Ok(());
-        }
-
-        let line = String::from_utf8(data).or(Err(Error::new(
-            ErrorKind::InvalidData,
-            "Data not valid UTF-8",
-        )))?;
-
-        if line.starts_with(IDENTIFIER_COMMENT) || line.starts_with(IDENTIFIER_TCP_PACKET) {
-            continue;
-        }
-
-        if let Some(status) = convert(&line, aircrafts).await {
-            if !status.aircraft.visible {
-                continue;
+        let data = match read_limited(&mut tcp_stream).await? {
+            Some(d) => d,
+            None => {
+                /* Connection closed. */
+                return Ok(());
             }
+        };
 
-            status_tx
-                .send(status)
-                .await
-                .or(Err(Error::new(ErrorKind::Other, "Could not send status")))?;
+        let lines = data
+            .split('\n')
+            .filter(|&l| !l.starts_with(IDENTIFIER_COMMENT))
+            .filter(|&l| !l.starts_with(IDENTIFIER_TCP_PACKET));
+
+        for line in lines {
+            if let Some(status) = convert(line, aircrafts).await {
+                if !status.aircraft.visible {
+                    continue;
+                }
+
+                status_tx
+                    .send(status)
+                    .await
+                    .or(Err(Error::new(ErrorKind::Other, "Could not send status")))?;
+            }
         }
     }
 }
 
-/// Reads incoming stream data while making sure that `MAX_MESSAGE_SIZE` is not exceeded.  
+/// Reads incoming stream data as utf8 string while making sure that `MAX_MESSAGE_SIZE` is not exceeded.  
 /// (Note that internally `MAX_MESSAGE_SIZE` *may* be exceeded by some bytes but the range check
 /// will result in an `Err`.)
+/// Returns `Ok(None)` is stream is closed
 ///
 /// # Arguments
 ///
@@ -126,7 +135,7 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
 ///
 /// let data = read_limited(&mut tcp_stream).await?;
 /// ```
-async fn read_limited(tcp_stream: &mut TcpStream) -> Result<Vec<u8>, Error> {
+async fn read_limited(tcp_stream: &mut TcpStream) -> Result<Option<String>, Error> {
     let mut data: Vec<u8> = vec![];
     let mut buffer: [u8; 10] = [0; 10];
 
@@ -146,5 +155,12 @@ async fn read_limited(tcp_stream: &mut TcpStream) -> Result<Vec<u8>, Error> {
         }
     }
 
-    Ok(data)
+    if data.is_empty() {
+        return Ok(None);
+    }
+
+    match String::from_utf8(data) {
+        Err(_) => Err(Error::new(ErrorKind::InvalidData, "Data not valid UTF-8")),
+        Ok(s) => Ok(Some(s)),
+    }
 }
