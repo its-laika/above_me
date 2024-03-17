@@ -1,4 +1,4 @@
-pub use aircrafts::{fetch_aircrafts, AircraftId};
+pub use client::{fetch_aircrafts, AircraftId};
 
-mod aircrafts;
+mod client;
 mod error;
