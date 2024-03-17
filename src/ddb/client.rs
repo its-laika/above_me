@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use reqwest::IntoUrl;
+
 use super::error::HttpError;
 use crate::aprs::Aircraft;
 
@@ -18,8 +20,10 @@ const INDEX_IDENTIFIED: usize = 6;
 
 pub type AircraftId = String;
 
-pub async fn fetch_aircrafts() -> Result<HashMap<AircraftId, Aircraft>, HttpError> {
-    let response = reqwest::get("https://ddb.glidernet.org/download/")
+pub async fn fetch_aircrafts<A: IntoUrl>(
+    url: A,
+) -> Result<HashMap<AircraftId, Aircraft>, HttpError> {
+    let response = reqwest::get(url)
         .await
         .map_err(|_| HttpError::FetchError)?
         .text()

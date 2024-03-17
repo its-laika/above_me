@@ -2,6 +2,7 @@ use crate::ddb::AircraftId;
 
 use super::status::Status;
 use super::{conversion::convert, Aircraft};
+use serde::Deserialize;
 use std::{
     collections::HashMap,
     io::{Error, ErrorKind},
@@ -28,15 +29,16 @@ const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 ///     password: "************",
 ///};
 /// ```
-pub struct ClientConfig<'a, A: ToSocketAddrs> {
+#[derive(Deserialize)]
+pub struct ClientConfig<A: ToSocketAddrs> {
     /// Address to connect to, e.g. "aprs.example.com"
     pub address: A,
     /// User name for authentication
-    pub user_name: &'a str,
+    pub user_name: String,
     /// Password for authentication
-    pub password: &'a str,
+    pub password: String,
     /// APRS filter that will be applied
-    pub filter: &'a str,
+    pub filter: String,
 }
 
 /// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming aircraft states.
@@ -64,8 +66,8 @@ pub struct ClientConfig<'a, A: ToSocketAddrs> {
 ///
 /// let _ = aprs::init_aprs_client(&config, status_tx, &aircrafts).await?;
 /// ```
-pub async fn init_aprs_client<'a, A: ToSocketAddrs>(
-    config: &ClientConfig<'a, A>,
+pub async fn init_aprs_client<A: ToSocketAddrs>(
+    config: &ClientConfig<A>,
     status_tx: Sender<Status>,
     aircrafts: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {

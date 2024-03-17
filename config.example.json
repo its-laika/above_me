@@ -1,0 +1,10 @@
+{
+    "aprs": {
+        "address": "aprs.example.com",
+        "user_name": "MYC4LLS1GN",
+        "password": "************",
+        "filter": "r/12.3/45.6/78"
+    },
+    "ddb_url": "https://example.com/aircraft",
+    "bind_to": "127.0.0.1:8000"
+}

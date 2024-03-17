@@ -1,5 +1,6 @@
 use api::{init_api_server, AppState};
-use aprs::{init_aprs_client, ClientConfig};
+use aprs::init_aprs_client;
+use config::load_config;
 use ddb::fetch_aircrafts;
 use tokio::{
     sync::{mpsc, oneshot},
@@ -8,19 +9,21 @@ use tokio::{
 
 mod api;
 mod aprs;
+mod config;
 mod ddb;
 mod time;
 
 #[tokio::main]
 async fn main() {
-    let config = ClientConfig {
-        address: "...",
-        user_name: "...",
-        password: "...",
-        filter: "...",
+    let config = match load_config() {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Could not load config: {}", e);
+            return;
+        }
     };
 
-    let aircrafts = match fetch_aircrafts().await {
+    let aircrafts = match fetch_aircrafts(&config.ddb_url).await {
         Ok(a) => a,
         Err(e) => {
             println!("Could not fetch aircraft data: {}", e);
@@ -37,13 +40,13 @@ async fn main() {
     let update_state = app_state.clone();
 
     join_set.spawn(async move {
-        init_api_server(&"127.0.0.1:8080", app_state, shutdown_rx)
+        init_api_server(&config.bind_to, app_state, shutdown_rx)
             .await
             .expect("Could not start API server");
     });
 
     join_set.spawn(async move {
-        if let Err(e) = init_aprs_client(&config, status_tx, &aircrafts).await {
+        if let Err(e) = init_aprs_client(&config.aprs, status_tx, &aircrafts).await {
             println!("Client stopped with error: {}", e);
         }
 
