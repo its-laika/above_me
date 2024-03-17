@@ -2,13 +2,12 @@
 What is flying _above\_me_?
 
 ## Target
-This projects listens to the APRS-servers of the OpenGliderNetwork and stores all incoming messages.
-Via API you can then request the list gliders near a given position. 
-The last step is a website (or app) which gets your position and returns the list of gliders right above you.
+This projects listens to the APRS-servers of the [Open Glider Network](http://wiki.glidernet.org/) and stores all incoming messages.
+Via API you can then request a list of gliders near a given position based on the OGN data. 
+The final step is a website (or app) which automatically gets your position and returns the list of gliders right above you.
 
 ## Status
-Basic API works, next steps are testing and improvements.
-When the API looks stable, frontend will be the next step.
+see [TODO.md](TODO.md).
 
 ## License
 This code is licensed under the MIT-License (see [LICENSE](LICENSE)).
