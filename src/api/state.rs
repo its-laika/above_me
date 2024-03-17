@@ -1,37 +1,43 @@
-use crate::{aprs::Status, mutex::get_locked, time::get_current_timestamp};
+use crate::{aprs::Status, time::get_current_timestamp};
 
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, MutexGuard},
 };
 
-use super::MAX_AGE_DIFF;
-
-pub fn create_app_state() -> AppState {
-    AppState {
-        states: Arc::new(Mutex::new(HashMap::new())),
-    }
-}
-
-pub async fn update_app_state(status: Status, app_state: &AppState) {
-    let current_timestamp = get_current_timestamp();
-
-    let mut mapping = get_locked(&app_state.states);
-
-    let outdated_keys = mapping
-        .values()
-        .filter(|e| current_timestamp - e.time_stamp <= MAX_AGE_DIFF)
-        .map(|e| e.aircraft.call_sign.clone())
-        .collect::<Vec<String>>();
-
-    for key in outdated_keys {
-        mapping.remove(&key);
-    }
-
-    mapping.insert(status.aircraft.call_sign.clone(), status);
-}
+pub const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
 
 #[derive(Clone)]
 pub struct AppState {
-    pub states: Arc<Mutex<HashMap<String, Status>>>,
+    states: Arc<Mutex<HashMap<String, Status>>>,
+}
+
+impl AppState {
+    pub fn create() -> AppState {
+        AppState {
+            states: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub fn get_states(&self) -> MutexGuard<HashMap<String, Status>> {
+        self.states.lock().expect("Mutex was poisoned")
+    }
+
+    pub async fn push_status(&self, status: Status) {
+        let current_timestamp = get_current_timestamp();
+
+        let mut states = self.get_states();
+
+        let outdated_keys = states
+            .values()
+            .filter(|e| current_timestamp - e.time_stamp <= MAX_AGE_DIFF)
+            .map(|e| e.aircraft.call_sign.clone())
+            .collect::<Vec<String>>();
+
+        for key in outdated_keys {
+            states.remove(&key);
+        }
+
+        states.insert(status.aircraft.call_sign.clone(), status);
+    }
 }

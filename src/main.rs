@@ -1,16 +1,25 @@
-use api::init_api_server;
+use api::{init_api_server, AppState};
 use aprs::{init_aprs_client, ClientConfig};
 use ddb::fetch_aircrafts;
-use tokio::sync::{mpsc, oneshot};
+use tokio::{
+    sync::{mpsc, oneshot},
+    task::JoinSet,
+};
 
 mod api;
 mod aprs;
 mod ddb;
-mod mutex;
 mod time;
 
 #[tokio::main]
 async fn main() {
+    let config = ClientConfig {
+        address: "...",
+        user_name: "...",
+        password: "...",
+        filter: "...",
+    };
+
     let aircrafts = match fetch_aircrafts().await {
         Ok(a) => a,
         Err(e) => {
@@ -19,29 +28,33 @@ async fn main() {
         }
     };
 
+    let mut join_set = JoinSet::new();
+
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
-    let (status_tx, status_rx) = mpsc::channel(32);
+    let (status_tx, mut status_rx) = mpsc::channel(32);
 
-    let mut server_handle = match init_api_server(&"127.0.0.1:8080", status_rx, shutdown_rx).await {
-        Ok(s) => s,
-        Err(e) => {
-            println!("Could not start API server: {}", e);
-            return;
+    let app_state = AppState::create();
+    let update_state = app_state.clone();
+
+    join_set.spawn(async move {
+        init_api_server(&"127.0.0.1:8080", app_state, shutdown_rx)
+            .await
+            .expect("Could not start API server");
+    });
+
+    join_set.spawn(async move {
+        if let Err(e) = init_aprs_client(&config, status_tx, &aircrafts).await {
+            println!("Client stopped with error: {}", e);
         }
-    };
 
-    let config = ClientConfig {
-        address: "...",
-        user_name: "...",
-        password: "...",
-        filter: "...",
-    };
+        shutdown_tx.send(()).unwrap();
+    });
 
-    if let Err(e) = init_aprs_client(&config, status_tx, &aircrafts).await {
-        println!("Client stopped with error: {}", e);
-    }
+    join_set.spawn(async move {
+        while let Some(status) = status_rx.recv().await {
+            update_state.push_status(status).await;
+        }
+    });
 
-    shutdown_tx.send(()).unwrap();
-
-    while server_handle.join_next().await.is_some() {}
+    while (join_set.join_next().await).is_some() {}
 }
