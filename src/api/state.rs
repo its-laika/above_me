@@ -28,9 +28,7 @@ impl AppState {
 
         AppState::remove_outdated_states(&mut states);
 
-        self.states
-            .lock()
-            .expect("Mutex was poisoned")
+        states
             .values()
             .filter(|&status| {
                 let latitude_diff = FACTOR_LATITUDE_KM_TO_DEG * range;
@@ -61,7 +59,7 @@ impl AppState {
 
         let outdated_keys = states
             .values()
-            .filter(|e| current_timestamp - e.time_stamp <= MAX_AGE_DIFF)
+            .filter(|e| current_timestamp - e.time_stamp > MAX_AGE_DIFF)
             .map(|e| e.aircraft.call_sign.clone())
             .collect::<Vec<String>>();
 
