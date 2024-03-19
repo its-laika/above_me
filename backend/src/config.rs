@@ -4,7 +4,7 @@ use serde::Deserialize;
 use crate::aprs::ClientConfig;
 
 /// Name of the config file (".json" is added by the `config` crate automatically)
-pub const FILE_NAME: &str = "config";
+pub const FILE_NAME: &str = "../config";
 
 /// Representation of program configuration
 #[derive(Deserialize)]

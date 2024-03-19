@@ -6,9 +6,9 @@
             "request": "launch",
             "name": "Debug",
             "preLaunchTask": "rust: cargo build",
-            "program": "target/debug/above_me",
+            "program": "backend/target/debug/above_me",
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/backend"
         }
     ]
 }
