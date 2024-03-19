@@ -6,6 +6,10 @@ This projects listens to the APRS-servers of the [Open Glider Network](http://wi
 Via API you can then request a list of gliders near a given position based on the OGN data. 
 The final step is a website (or app) which automatically gets your position and returns the list of gliders right above you.
 
+## Docs
+### API
+see [openapi.yml](openapi.yml)
+
 ## Status
 see [TODO.md](TODO.md).
 

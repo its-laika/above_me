@@ -1,0 +1,187 @@
+openapi: 3.1.0
+info:
+  title: above_me API
+  description: |-
+    The above_me API allows you to fetch information about aircraft for a given position based on the [Open Glider Network](http://wiki.glidernet.org/) data.
+  
+  contact:
+    email: 36010519+neon-JS@users.noreply.github.com
+  license:
+    name: MIT License
+    url: https://opensource.org/license/mit
+  version: '0.1.0'
+externalDocs:
+  description: Repository
+  url: https://github.com/neon-JS/above_me
+tags:
+  - name: aircaft
+    description: Information about aircraft
+paths:
+  /r/{latitude}/{longitude}/{range}:
+    get:
+      tags:
+        - aircaft
+      summary: Get information about aircraft for a given position
+      description: |-
+       Returns information for all aircraft that appeared in the last 5 minutes
+       in the range of given _latitude_ ± _range_ and _longitude_ ± _range_.
+
+      operationId: getAircraftForPosition
+      parameters:
+        - name: latitude
+          in: path
+          description: Latitude filter
+          example: 48.858222
+          required: true
+          schema:
+            type: number
+            format: float
+        - name: longitude
+          in: path
+          description: Longitude filter
+          example: 2.2945
+          required: true
+          schema:
+            type: number
+            format: float
+        - name: range
+          in: path
+          description: Range around filter position
+          example: 15
+          required: true
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Information'
+        '400':
+          description: Invalid parameters given
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Information:
+      required:
+        - latitude
+        - longitude
+        - range
+        - states
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: float
+          examples: [48.858222]
+          description: Equals given latitude parameter
+        longitude:
+          type: number
+          format: float
+          examples: [2.2945]
+          description: Equals given longitude parameter
+        range:
+          type: integer
+          format: int32
+          examples: [15]
+          description: Equals given range parameter
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/Status'
+    Status:
+      required:
+        - aircraft
+        - position
+        - speed
+        - vertical_speed
+        - altitude
+        - turn_rate
+        - course
+        - time_stamp
+      type: object
+      properties:
+        aircraft:
+          $ref: '#/components/schemas/Aircraft'
+        position:
+          $ref: '#/components/schemas/Position'
+        speed:
+          type: integer
+          format: int32
+          examples: [132]
+          description: Speed of aircraft in _km/h_
+        vertical_speed:
+          type: number
+          format: float
+          examples: [0.32]
+          description: Vertical speed of aircraft in _m/sec_
+        altitude:
+          type: integer
+          format: int32
+          examples: [3431]
+          description: Altitude of aircraft in _m_
+        turn_rate:
+          type: number
+          format: float
+          examples: [3.5]
+          descripion: Turn rate of aircaft in _turns/min_
+        course:
+          type: integer
+          format: int32
+          examples: [152]
+          description: Course of aircraft
+        time_stamp:
+          type: integer
+          format: int64
+          examples: [670932000]
+          description: Unix timestamp of message
+    Aircraft:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          examples: ["ABC123"]
+          description: DDB id of aircraft
+        call_sign:
+          type: string
+          examples: ["G1"]
+          description: Call sign of aircraft
+        registration:
+          type: string
+          examples: ["D-6507"]
+          description: Registration of aircraft
+        aircraft_type:
+          type: string
+          examples: ["ASK-21"]
+          description: Airplane model
+        visible:
+          type: boolean
+          examples: [true]
+          description: Tells whether aircraft is visible & tracked. Always true.
+    Position:
+      required:
+        - latitude
+        - longitude
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: float
+          examples: [48.858222]
+          description: Latitude
+        longitude:
+          type: number
+          format: float
+          examples: [2.2945]
+          description: Longitude
+    Error:
+      type: string
+      examples: ["Invalid URL: Cannot parse value at index 2 with value `\"-50000\"` to a `u32`"]

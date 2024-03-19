@@ -4,7 +4,7 @@
 - [ ] Check whether APRS client needs to send regular keep alives
 - [ ] Documentation
   - [ ] Code
-  - [ ] API
+  - [x] API
 
 ## 🅰️ Frontend
 - [ ] Build a frontend
