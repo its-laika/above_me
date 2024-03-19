@@ -18,8 +18,22 @@ const INDEX_CALL_SIGN: usize = 4;
 const INDEX_TRACKED: usize = 5;
 const INDEX_IDENTIFIED: usize = 6;
 
+/// Alias for `String`, just for readability.
 pub type AircraftId = String;
 
+/// Fetches aircraft data from DDB
+///
+/// # Arguments
+///
+/// * `url` - The DDB server url
+///
+/// # Examples
+/// ```
+/// let url = "https://ddb.example.com/aircraft"
+/// let aircrafts = fetch_aircrafts(url)
+///     .await
+///     .expect("Could not fetch DDB data");
+/// ```
 pub async fn fetch_aircrafts<A: IntoUrl>(
     url: A,
 ) -> Result<HashMap<AircraftId, Aircraft>, HttpError> {

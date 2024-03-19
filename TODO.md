@@ -2,8 +2,8 @@
 
 ## 🦀 Backend
 - [x] Check whether APRS client needs to send regular keep alives
-- [ ] Documentation
-  - [ ] Code
+- [x] Documentation
+  - [x] Code
   - [x] API
 
 ## 🅰️ Frontend

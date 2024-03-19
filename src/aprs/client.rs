@@ -13,21 +13,15 @@ use tokio::{
     sync::mpsc::Sender,
 };
 
+// TODO: Check if too small.
 const MAX_MESSAGE_SIZE: usize = 4096;
+
+/// Messages starting with a hashtag are comments (e.g. keep alive messages)
 const IDENTIFIER_COMMENT: char = '#';
+/// Messages starting with this sequence are connection details
 const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 
 /// Configuration for connecting to an APRS server
-///
-/// # Examples
-///
-/// ```
-/// let config = aprs::ClientConfig {
-///     address: "aprs.example.com",
-///     user_name: "MYC4LLS1GN",
-///     password: "************",
-///};
-/// ```
 #[derive(Deserialize)]
 pub struct ClientConfig<A: ToSocketAddrs> {
     /// Address to connect to, e.g. "aprs.example.com"
@@ -51,21 +45,31 @@ pub struct ClientConfig<A: ToSocketAddrs> {
 /// * `status_tx` - A `Sender<String>` that will send incoming states from the server
 /// * `aircrafts` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
 ///
+/// # Returns
+///
+/// Future that will either result to () or Error when an error occurs.
+///
 /// # Examples
 ///
 /// ```
-/// let config = aprs::ClientConfig {
-///     address: "aprs.example.com",
-///     user_name: "MYC4LLS1GN",
-///     password: "************",
-///};
+/// use aprs::Aircraft;
+/// use ddb::AircraftId;
+/// use std::collections::HashMap;
+/// use tokio::{spawn, sync::mpsc::channel};
 ///
-/// let (status_tx, _status_rx) = tokio::sync::mpsc::channel(32);
-/// let aircrafts: std::collections::HashMap<ddb::AircraftId, aprs::Aircraft> = std::collections::HashMap::new();
+/// let config = aprs::ClientConfig { ... };
+/// let (status_tx, status_rx) = channel(32);
+/// let aircrafts: HashMap<AircraftId, Aircraft> = HashMap::new();
 ///
-/// /* Listen to `_status_rx` states here... */
+/// spawn(async move {
+///     aprs::init_aprs_client(&config, status_tx, &aircrafts)
+///         .await
+///         .expect("Client failed");
+/// });
 ///
-/// let _ = aprs::init_aprs_client(&config, status_tx, &aircrafts).await?;
+/// while let Some(status) = status_rx.recv().await {
+///     println!("Got status: {}", status);
+/// }
 /// ```
 ///
 /// # Notes
@@ -123,13 +127,17 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
 }
 
 /// Reads incoming stream data as utf8 string while making sure that `MAX_MESSAGE_SIZE` is not exceeded.  
-/// (Note that internally `MAX_MESSAGE_SIZE` *may* be exceeded by some bytes but the range check
-/// will result in an `Err`.)
-/// Returns `Ok(None)` is stream is closed
+/// (Note that internally `MAX_MESSAGE_SIZE` *may* be exceeded by some bytes but the range check will result in an `Err`.)
 ///
 /// # Arguments
 ///
 /// * `tcp_stream` - The `TcpStream` to read data from
+///
+/// # Returns
+///
+/// Returns `Ok(Some(String))` if data could be read successfully.  
+/// Returns `Ok(None)` is stream is closed.  
+/// Returns `Err(Error)` if an error occurs.  
 ///
 /// # Examples
 /// ```
@@ -137,7 +145,14 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
 ///
 /// let mut tcp_stream = TcpStream::connect(address).await?;
 ///
-/// let data = read_limited(&mut tcp_stream).await?;
+/// let data = read_limited(&mut tcp_stream)
+///     .await
+///     .expect("An error occured while reading stream data");
+///
+/// match data.await? {
+///     Some(d) => println!("Got data: {}", d),
+///     None => println!("Stream closed")
+/// };
 /// ```
 async fn read_limited(tcp_stream: &mut TcpStream) -> Result<Option<String>, Error> {
     let mut data: Vec<u8> = vec![];

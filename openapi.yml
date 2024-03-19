@@ -95,6 +95,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Status'
+          description: The aircraft states that match the given parameters
     Status:
       required:
         - aircraft

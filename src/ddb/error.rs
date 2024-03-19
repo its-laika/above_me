@@ -1,8 +1,11 @@
 use std::fmt::{Display, Formatter, Result};
 
+/// Enum of `Error`s for failing HTTP requests
 #[derive(Debug)]
 pub enum HttpError {
+    /// Could not fetch data
     FetchError,
+    /// The response is not valid
     ResponseError,
 }
 
