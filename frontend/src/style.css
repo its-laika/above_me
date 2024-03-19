@@ -1,0 +1,14 @@
+nav {
+    margin-bottom: 3%;
+}
+
+#whats-above-me {
+    margin: 5%;
+    display: flex;
+    justify-content: center;
+}
+
+#table-container {
+    margin: 5% 0;
+    white-space: nowrap;
+}

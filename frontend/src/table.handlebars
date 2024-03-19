@@ -1,0 +1,39 @@
+<table class="table table-striped table-bordered table-dresponsive">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Registration</th>
+            <th scope="col">Altitude</th>
+            <th scope="col">Speed</th>
+            <th scope="col">Course</th>
+            <th scope="col">Vertical speed</th>
+            <th scope="col">Position</th>
+            <th scope="col">Turn rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each states}}
+        <tr>
+            <td class="variable-value">
+                <span>
+                    {{#if aircraft.registration}}
+                    <b>{{aircraft.registration}}</b><br>
+                    {{aircraft.type}}
+                    {{/if}}
+                    {{#unless aircraft.registration}}
+                    unknown
+                    {{/unless}}
+                </span>
+            </td>
+            <td class="variable-value"><span>{{altitude}} <i>m</i></span></td>
+            <td class="variable-value"><span>{{speed}} <i>km/h</i></span></td>
+            <td class="variable-value"><span>{{course}}<i>°</i></span></td>
+            <td class="variable-value"><span>{{vertical_speed}} <i>m/s</i></span></td>
+            <td class="variable-value"><span>{{turn_rate}}</span> <i>turns/min</i></td>
+            <td class="variable-value">
+                {{position.latitude}}<br>
+                {{position.longitude}}
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>

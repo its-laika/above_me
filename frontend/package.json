@@ -1,0 +1,34 @@
+{
+  "name": "above_me",
+  "version": "0.1.0",
+  "description": "This project contains the frontend for above_me, a service that lets you see what aircraft are currently flying above you.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy-dependencies": "rm -rf dist && rsync -av --exclude='*.handlebars' src/ dist/ && cp node_modules/handlebars/dist/handlebars.min.js dist/ && cp node_modules/bootstrap/dist/js/bootstrap.min.js dist && cp node_modules/bootstrap/dist/js/bootstrap.min.js.map dist && cp node_modules/bootstrap/dist/css/bootstrap.min.css dist",
+    "compile": "handlebars src/table.handlebars -f dist/table.handlebars.compiled.js",
+    "dev": "npm run copy-dependencies && npm run compile && cd dist && python3 -m http.server 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neon-JS/above_me.git"
+  },
+  "keywords": [
+    "ogn",
+    "openglidernet",
+    "open-glider-net",
+    "aircraft",
+    "glider",
+    "planes"
+  ],
+  "author": "Niklas 'Curly' Schmidt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neon-JS/above_me/issues"
+  },
+  "homepage": "https://github.com/neon-JS/above_me#readme",
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "handlebars": "^4.7.8"
+  }
+}
