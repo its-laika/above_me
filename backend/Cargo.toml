@@ -2,8 +2,13 @@
 name = "above_me"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Niklas 'Curly' Schmidt <36010519+neon-JS@users.noreply.github.com>"]
+description = "This project contains the backend for above_me, a service that lets you see what aircraft are currently flying above you."
+readme = "../README.md"
+repository = "https://github.com/neon-JS/above_me"
+license = "MIT"
+keywords = ["ogn", "openglidernet", "open-glider-net", "aircraft", "glider", "planes"]
+exclude = ["Dockerfile", "target/"]
 
 [dependencies]
 axum = "0.7.4"

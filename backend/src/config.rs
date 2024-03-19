@@ -1,10 +1,12 @@
-use config::{ConfigError, File, FileFormat};
+use config::{ConfigError, Environment, File, FileFormat};
 use serde::Deserialize;
 
 use crate::aprs::ClientConfig;
 
 /// Name of the config file (".json" is added by the `config` crate automatically)
-pub const FILE_NAME: &str = "../config";
+pub const PROJECT_CONFIG_FILE: &str = "../config";
+pub const BACKEND_CONFIG_FILE: &str = "config";
+pub const ENVIRONMENT_PREFIX: &str = "ABOVE_ME";
 
 /// Representation of program configuration
 #[derive(Deserialize)]
@@ -17,7 +19,7 @@ pub struct Config {
     pub bind_to: String,
 }
 
-/// Tries loading configuration from config file
+/// Tries loading configuration from config files or environment
 ///
 /// # Examples
 /// ```
@@ -26,10 +28,10 @@ pub struct Config {
 /// print!("Server will bind to: {}", config.bind_to);
 /// ```
 pub fn load_config() -> Result<Config, ConfigError> {
-    let config_file = File::new(FILE_NAME, FileFormat::Json);
-
     config::Config::builder()
-        .add_source(config_file)
+        .add_source(File::new(PROJECT_CONFIG_FILE, FileFormat::Json).required(false))
+        .add_source(File::new(BACKEND_CONFIG_FILE, FileFormat::Json).required(false))
+        .add_source(Environment::with_prefix(ENVIRONMENT_PREFIX))
         .build()?
         .try_deserialize::<Config>()
 }
