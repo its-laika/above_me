@@ -67,6 +67,11 @@ pub struct ClientConfig<A: ToSocketAddrs> {
 ///
 /// let _ = aprs::init_aprs_client(&config, status_tx, &aircrafts).await?;
 /// ```
+///
+/// # Notes
+///
+/// Does not send keep alive messages to server as this does not seem necessary.
+/// see [https://lists.tapr.org/](https://lists.tapr.org/pipermail/aprssig_lists.tapr.org/2015-April/044264.html)
 pub async fn init_aprs_client<A: ToSocketAddrs>(
     config: &ClientConfig<A>,
     status_tx: Sender<Status>,
@@ -98,10 +103,9 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
             }
         };
 
-        let lines = data
-            .split('\n')
-            .filter(|&l| !l.starts_with(IDENTIFIER_COMMENT))
-            .filter(|&l| !l.starts_with(IDENTIFIER_TCP_PACKET));
+        let lines = data.split('\n').filter(|&l| {
+            !l.starts_with(IDENTIFIER_COMMENT) && !l.starts_with(IDENTIFIER_TCP_PACKET)
+        });
 
         for line in lines {
             if let Some(status) = convert(line, aircrafts).await {

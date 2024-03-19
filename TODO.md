@@ -1,7 +1,7 @@
 # TODOs
 
 ## 🦀 Backend
-- [ ] Check whether APRS client needs to send regular keep alives
+- [x] Check whether APRS client needs to send regular keep alives
 - [ ] Documentation
   - [ ] Code
   - [x] API
