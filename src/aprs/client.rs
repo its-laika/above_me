@@ -112,7 +112,7 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
         });
 
         for line in lines {
-            if let Some(status) = convert(line, aircrafts).await {
+            if let Some(status) = convert(line, aircrafts) {
                 if !status.aircraft.visible {
                     continue;
                 }

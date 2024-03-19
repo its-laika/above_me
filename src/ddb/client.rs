@@ -10,6 +10,7 @@ const FIELD_ENCLOSURE: char = '\'';
 const FIELD_SEPARATOR: char = ',';
 const IDENTIFIER_COMMENT: char = '#';
 const LINE_BREAK: char = '\n';
+const EMPTY: &str = "";
 
 const INDEX_ID: usize = 1;
 const INDEX_TYPE: usize = 2;
@@ -45,7 +46,7 @@ pub async fn fetch_aircrafts<A: IntoUrl>(
         .map_err(|_| HttpError::ResponseError)?;
 
     Ok(response
-        .replace(FIELD_ENCLOSURE, "")
+        .replace(FIELD_ENCLOSURE, EMPTY)
         .split(LINE_BREAK)
         .filter_map(convert)
         .map(|a| (a.id.clone(), a))

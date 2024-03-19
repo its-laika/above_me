@@ -52,7 +52,7 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 ///
 /// print!("Callsign: {}", status.aircraft.callsign); // "Callsign: ABCDE"
 /// ```
-pub async fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
+pub fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
     let captures = match LINE_REGEX.captures(line) {
         Some(c) => c,
         None => return None,
@@ -64,8 +64,6 @@ pub async fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> O
         Some(a) => a.clone(),
         None => return None,
     };
-
-    let time_stamp = get_current_timestamp();
 
     let status = Status {
         aircraft,
