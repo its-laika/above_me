@@ -7,7 +7,7 @@ use axum::{
 };
 use serde::Serialize;
 use std::io::Error;
-use tokio::{net::ToSocketAddrs, sync::oneshot};
+use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 
 /// Initializes a tcp server that serves our API
 ///
@@ -49,7 +49,7 @@ pub async fn init_api_server<'a, A: ToSocketAddrs>(
         .route("/r/:latitude/:longitude/:range", get(handler))
         .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind(address).await?;
+    let listener = TcpListener::bind(address).await?;
 
     axum::serve(listener, app)
         .with_graceful_shutdown(async {

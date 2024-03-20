@@ -7,14 +7,12 @@ use std::{
     collections::HashMap,
     io::{Error, ErrorKind},
 };
+use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::AsyncWriteExt,
     net::{TcpStream, ToSocketAddrs},
     sync::mpsc::Sender,
 };
-
-// TODO: Check if too small.
-const MAX_MESSAGE_SIZE: usize = 4096;
 
 /// Messages starting with a hashtag are comments (e.g. keep alive messages)
 const IDENTIFIER_COMMENT: char = '#';
@@ -98,88 +96,28 @@ pub async fn init_aprs_client<A: ToSocketAddrs>(
 
     tcp_stream.write_all(login_message.as_bytes()).await?;
 
+    let mut buf_reader = BufReader::new(&mut tcp_stream);
     loop {
-        let data = match read_limited(&mut tcp_stream).await? {
-            Some(d) => d,
-            None => {
-                /* Connection closed. */
-                return Ok(());
-            }
+        let mut line = String::new();
+
+        if let 0 = buf_reader.read_line(&mut line).await? {
+            /* Connection closed. */
+            return Ok(());
         };
 
-        let lines = data.split('\n').filter(|&l| {
-            !l.starts_with(IDENTIFIER_COMMENT) && !l.starts_with(IDENTIFIER_TCP_PACKET)
-        });
+        if line.starts_with(IDENTIFIER_COMMENT) || line.starts_with(IDENTIFIER_TCP_PACKET) {
+            continue;
+        }
 
-        for line in lines {
-            if let Some(status) = convert(line, aircrafts) {
-                if !status.aircraft.visible {
-                    continue;
-                }
-
-                status_tx
-                    .send(status)
-                    .await
-                    .or(Err(Error::new(ErrorKind::Other, "Could not send status")))?;
+        if let Some(status) = convert(&line, aircrafts) {
+            if !status.aircraft.visible {
+                continue;
             }
+
+            status_tx
+                .send(status)
+                .await
+                .or(Err(Error::new(ErrorKind::Other, "Could not send status")))?;
         }
-    }
-}
-
-/// Reads incoming stream data as utf8 string while making sure that `MAX_MESSAGE_SIZE` is not exceeded.  
-/// (Note that internally `MAX_MESSAGE_SIZE` *may* be exceeded by some bytes but the range check will result in an `Err`.)
-///
-/// # Arguments
-///
-/// * `tcp_stream` - The `TcpStream` to read data from
-///
-/// # Returns
-///
-/// Returns `Ok(Some(String))` if data could be read successfully.  
-/// Returns `Ok(None)` is stream is closed.  
-/// Returns `Err(Error)` if an error occurs.  
-///
-/// # Examples
-/// ```
-/// use tokio::net::TcpStream;
-///
-/// let mut tcp_stream = TcpStream::connect(address).await?;
-///
-/// let data = read_limited(&mut tcp_stream)
-///     .await
-///     .expect("An error occured while reading stream data");
-///
-/// match data.await? {
-///     Some(d) => println!("Got data: {}", d),
-///     None => println!("Stream closed")
-/// };
-/// ```
-async fn read_limited(tcp_stream: &mut TcpStream) -> Result<Option<String>, Error> {
-    let mut data: Vec<u8> = vec![];
-    let mut buffer: [u8; 10] = [0; 10];
-
-    'read_buffer: loop {
-        let read_bytes = tcp_stream.read(&mut buffer).await?;
-        data.extend_from_slice(&buffer[0..read_bytes]);
-
-        if read_bytes < buffer.len() {
-            break 'read_buffer;
-        }
-
-        if data.len() > MAX_MESSAGE_SIZE {
-            return Err(Error::new(
-                ErrorKind::OutOfMemory,
-                format!("Exceeded max message size ({} bytes)", MAX_MESSAGE_SIZE),
-            ));
-        }
-    }
-
-    if data.is_empty() {
-        return Ok(None);
-    }
-
-    match String::from_utf8(data) {
-        Err(_) => Err(Error::new(ErrorKind::InvalidData, "Data not valid UTF-8")),
-        Ok(s) => Ok(Some(s)),
     }
 }

@@ -46,20 +46,20 @@ pub struct Position {
     pub longitude: f32,
 }
 
-impl std::fmt::Display for Status {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Status {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "[ 
-                Aircraft: {},
-                Position: {},
-                Speed: {},
-                Vertial speed: {},
-                Altitude: {},
-                Turn rate: {},
-                Course: {},
-                Timestamp: {}
-             ]",
+    Aircraft: {},
+    Position: {},
+    Speed: {},
+    Vertial speed: {},
+    Altitude: {},
+    Turn rate: {},
+    Course: {},
+    Timestamp: {}
+]",
             self.aircraft,
             self.position,
             self.speed,
