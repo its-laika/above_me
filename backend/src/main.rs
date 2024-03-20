@@ -11,6 +11,7 @@ mod api;
 mod aprs;
 mod config;
 mod ddb;
+mod haversine;
 mod time;
 
 #[tokio::main]

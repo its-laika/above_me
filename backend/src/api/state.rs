@@ -1,4 +1,8 @@
-use crate::{aprs::Status, time::get_current_timestamp};
+use crate::{
+    aprs::{Position, Status},
+    haversine::calculate_distance,
+    time::get_current_timestamp,
+};
 
 use std::{
     collections::HashMap,
@@ -6,10 +10,6 @@ use std::{
 };
 
 const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
-
-/* approximated. (meaning: copied from the internet.) */
-const FACTOR_LATITUDE_KM_TO_DEG: f32 = 0.00905;
-const FACTOR_LONGITUDE_KM_TO_DEG: f32 = 0.000905;
 
 /// Our shared application state for the API
 #[derive(Clone)]
@@ -37,14 +37,13 @@ impl AppState {
     /// Returns the states in the `AppState` that match given filters
     ///
     /// # Arguments
-    /// * `latitude` - The target latitude
-    /// * `longitude` - The target longitude
+    /// * `position` - The position that should be searched for
     /// * `range` - Range around given `latitude` and `longitude` that should be searched for.
-    ///   Note that this will include as a "rectangular" filter, not a circular one.
     ///
     /// # Examples
     /// ```
     /// use api::AppState;
+    /// use aprs::Position;
     ///
     /// let app_state = AppState::create();
     ///
@@ -53,11 +52,16 @@ impl AppState {
     /// app_state.push_status(...);
     /// app_state.push_status(...);
     ///
-    /// var filtered_states = app_state.get_filtered_states(12.3, 45.6, 15);
+    /// let position = Position {
+    ///    latitude: 48.858222,
+    ///    longitude: 2.2945,
+    /// };
+    ///
+    /// var filtered_states = app_state.get_filtered_states(&position, 15);
     ///
     /// // filtered_states contains clones of all pushed states that match the given filter
     /// ```
-    pub fn get_filtered_states(&self, latitude: f32, longitude: f32, range: f32) -> Vec<Status> {
+    pub fn get_filtered_states(&self, position: &Position, range: f32) -> Vec<Status> {
         let mut states = self.states.lock().expect("Mutex was poisoned");
 
         // TODO: Check if this is the correct place to call this function as this isn't really correct.
@@ -65,19 +69,7 @@ impl AppState {
 
         states
             .values()
-            .filter(|&status| {
-                let latitude_diff = FACTOR_LATITUDE_KM_TO_DEG * range;
-                if f32::abs(status.position.latitude - latitude) > latitude_diff {
-                    return false;
-                }
-
-                let longitude_diff = FACTOR_LONGITUDE_KM_TO_DEG * range;
-                if f32::abs(status.position.longitude - longitude) > longitude_diff {
-                    return false;
-                }
-
-                true
-            })
+            .filter(|&status| calculate_distance(position, &status.position) <= range)
             .cloned()
             .collect::<Vec<Status>>()
     }

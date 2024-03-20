@@ -1,5 +1,5 @@
 use super::state::AppState;
-use crate::aprs::Status;
+use crate::aprs::{Position, Status};
 use axum::{
     extract::{Path, State},
     routing::get,
@@ -72,11 +72,16 @@ async fn handler(
         range
     };
 
+    let position = Position {
+        latitude,
+        longitude,
+    };
+
     Json(ResponseDto {
         latitude,
         longitude,
         range,
-        states: app_state.get_filtered_states(latitude, longitude, range as f32),
+        states: app_state.get_filtered_states(&position, range as f32),
     })
 }
 
