@@ -11,7 +11,7 @@ function submit(event) {
         return;
     }
 
-    const url = location + `/r/${latitude}/${longitude}/${range}`;
+    const url = location + `r/${latitude}/${longitude}/${range}`;
 
     fetch(url)
         .then(response => response.json())
@@ -53,8 +53,8 @@ function onClickWhatsAboveMe() {
 
     navigator.geolocation.getCurrentPosition(
         (position) => {
-            document.querySelector('#latitude').value = position.coords.latitude;
-            document.querySelector('#longitude').value = position.coords.longitude;
+            document.querySelector('#latitude').value = Math.round(position.coords.latitude * 1_000_000_000) / 1_000_000_000;
+            document.querySelector('#longitude').value = Math.round(position.coords.longitude * 1_000_000_000) / 1_000_000_000;
             document.querySelector('#no-position-available').style.display = 'none';
             document.querySelector('#loading-position').style.display = 'none';
             submit();
