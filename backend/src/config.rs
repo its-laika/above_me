@@ -23,8 +23,7 @@ pub struct Config {
 ///
 /// # Examples
 /// ```
-/// let config = load_config.expect("Could not load config by file");
-///
+/// let config = load_config().expect("Could not load config by file");
 /// print!("Server will bind to: {}", config.bind_to);
 /// ```
 pub fn load_config() -> Result<Config, ConfigError> {

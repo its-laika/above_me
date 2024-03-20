@@ -3,6 +3,8 @@ use crate::aprs::Aircraft;
 const VALUE_YES: &str = "Y";
 const FIELD_SEPARATOR: char = ',';
 const IDENTIFIER_COMMENT: char = '#';
+const FIELD_ENCLOSURE: char = '\'';
+const EMPTY: &str = "";
 
 const INDEX_ID: usize = 1;
 const INDEX_TYPE: usize = 2;
@@ -20,15 +22,15 @@ const INDEX_IDENTIFIED: usize = 6;
 /// # Examples
 ///
 /// ```
-/// let line = "ABC123,ASK-21,D-6507,G1,Y,Y";
-/// let aircraft = convert(line).unwrap();
-///
-/// print!("Callsign: {}", aircraft.call_sign); // "Callsign: G1"
+/// let aircraft = convert("'O','AB1234','ASK-21','D-6507','G1','Y','Y'").unwrap();
+/// assert_eq!(aircraft.registration, "D-6507");
 /// ```
 pub fn convert(line: &str) -> Option<Aircraft> {
     if line.starts_with(IDENTIFIER_COMMENT) {
         return None;
     }
+
+    let line = line.replace(FIELD_ENCLOSURE, EMPTY);
 
     let fields = line
         .split(FIELD_SEPARATOR)
@@ -56,4 +58,32 @@ pub fn convert(line: &str) -> Option<Aircraft> {
         aircraft_type,
         visible,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn converts_correctly() {
+        let line = "'O','AB1234','ASK-21','D-6507','G1','Y','Y'";
+
+        let result = convert(line);
+        assert!(result.is_some());
+
+        let aircraft = result.unwrap();
+        assert_eq!(aircraft.id, "AB1234");
+        assert_eq!(aircraft.call_sign, "G1");
+        assert_eq!(aircraft.registration, "D-6507");
+        assert_eq!(aircraft.aircraft_type, "ASK-21");
+        assert!(aircraft.visible);
+    }
+
+    #[test]
+    fn sets_visible_correctly() {
+        assert!(convert("'O','AB1234','','','','Y','Y'").is_some_and(|a| a.visible));
+        assert!(convert("'O','AB1234','','','','Y','N'").is_some_and(|a| !a.visible));
+        assert!(convert("'O','AB1234','','','','N','Y'").is_some_and(|a| !a.visible));
+        assert!(convert("'O','AB1234','','','','N','N'").is_some_and(|a| !a.visible));
+    }
 }

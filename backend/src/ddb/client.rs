@@ -6,9 +6,7 @@ use super::conversion::convert;
 use super::error::HttpError;
 use crate::aprs::Aircraft;
 
-const FIELD_ENCLOSURE: char = '\'';
 const LINE_BREAK: char = '\n';
-const EMPTY: &str = "";
 
 /// Alias for `String`, just for readability.
 pub type AircraftId = String;
@@ -37,7 +35,6 @@ pub async fn fetch_aircrafts<A: IntoUrl>(
         .map_err(|_| HttpError::ResponseError)?;
 
     Ok(response
-        .replace(FIELD_ENCLOSURE, EMPTY)
         .split(LINE_BREAK)
         .filter_map(convert)
         .map(|a| (a.id.clone(), a))

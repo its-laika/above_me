@@ -15,7 +15,8 @@ use super::status::{Aircraft, Position, Status};
 /// form of _0bSTxxxxxx_ and if _S_ = _1_ or _T_ = _1_, we should discard the message.
 /// So all "allowed" values are in the range of _0b00000000_ - _0b00111111_, or in hex: _0x00_ - _0x3f_,
 /// therefore we can discard all messages not in this range.
-/// <seealso href="https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87"/>
+///
+/// see: [dbursem/ogn-client-php](https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87)
 const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])/(?<longitude>[0-9.]+[WE]).*?(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+).*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+).*?(?<verticalSpeed>[-0-9]+)fpm.*?(?<turnRate>[-.0-9]+)rot";
 
 /// Factor to convert knots to km/h
@@ -27,7 +28,6 @@ const FACTOR_FT_MIN_TO_M_SEC: f32 = 0.00508;
 /// Factor to convert "turns/2min" to "turns/min"
 const FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN: f32 = 0.5;
 
-// TODO: Use once_cell?
 static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap());
 
 /// Tries converting an APRS line into a `Status`
@@ -44,13 +44,21 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// use ddb::AircraftId;
 /// use std::collections::HashMap;
 ///
-/// /* see: http://wiki.glidernet.org/wiki:ogn-flavoured-aprs */
-/// let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0ADDE626 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
-/// let aircrafts: HashMap<AircraftId, Aircraft> = HashMap::new();
+/// let valid_aircraft = Aircraft {
+///     id: String::from("AB1234"),
+///     call_sign: String::from("G1"),
+///     registration: String::from("D-6507"),
+///     aircraft_type: String::from("ASK-21"),
+///     visible: true,
+/// };
 ///
-/// let status = convert(line).await;
+/// let mapping = HashMap::from([(valid_aircraft.id.clone(), valid_aircraft.clone())]);
 ///
-/// print!("Callsign: {}", status.aircraft.callsign); // "Callsign: ABCDE"
+/// let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+///
+/// let result = convert(line, &mapping);
+/// assert!(result.is_some());
+/// assert_eq!(result.unwrap().aircraft.id, valid_aircraft.id);
 /// ```
 pub fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
     let captures = match LINE_REGEX.captures(line) {
@@ -93,9 +101,12 @@ pub fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<
 /// # Examples
 ///
 /// ```
-/// // We assume that `captures` will include a _turnRate_.
-/// let captures = LINE_REGEX.captures(line).unwrap();
-/// let turn_rate = capture_as_f32(&captures, "turnRate", FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN).unwrap();
+/// let captures = Regex::new(r"(?<value>[\d.]+)")
+///     .unwrap()
+///     .captures("12.34")
+///     .unwrap();
+///
+/// assert!(capture_as_f32(&captures, "value", 1.0).is_some_and(|f| f == 12.34));
 /// ```
 fn capture_as_f32(captures: &Captures, name: &str, conversion_factor: f32) -> Option<f32> {
     let string_value = captures.name(name)?.as_str();
@@ -115,9 +126,12 @@ fn capture_as_f32(captures: &Captures, name: &str, conversion_factor: f32) -> Op
 /// # Examples
 ///
 /// ```
-/// // We assume that `captures` will include a _speed_.
-/// let captures = LINE_REGEX.captures(line).unwrap();
-/// let speed = capture_as_u16(&captures, "speed", FACTOR_KNOTS_TO_KM_H).unwrap();
+/// let captures = Regex::new(r"(?<value>\d+)")
+///     .unwrap()
+///     .captures("1234")
+///     .unwrap();
+///
+/// assert!(capture_as_u16(&captures, "value", 1.0).is_some_and(|f| f == 1234));
 /// ```
 /// # Notes
 ///
@@ -144,11 +158,12 @@ fn capture_as_u16(captures: &Captures, name: &str, conversion_factor: f32) -> Op
 /// # Examples
 ///
 /// ```
-/// // We assume that `captures` will include a _latitude_ with a value of "5111.32N".
-/// let captures = LINE_REGEX.captures(line).unwrap();
-/// let latitude = capture_as_coordinate_value(&captures, "latitude");
+/// let captures = Regex::new(r"(?<value>.+)")
+///     .unwrap()
+///     .captures("1029.35S")
+///     .unwrap();
 ///
-/// print!("{}", latitude); // 51.188667
+/// assert!(capture_as_coordinate_value(&captures, "value").is_some_and(|f| f == -10.489166));
 /// ```
 fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
     /* Latitude and longitude (by APRS-standard) are given as following: ddmm.mmD where d = "degree",
@@ -182,5 +197,92 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
         Some(value * -1.0)
     } else {
         Some(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn convert_works() {
+        let valid_aircraft = Aircraft {
+            id: String::from("AB1234"),
+            call_sign: String::from("G1"),
+            registration: String::from("D-6507"),
+            aircraft_type: String::from("ASK-21"),
+            visible: true,
+        };
+
+        let mapping = HashMap::from([(valid_aircraft.id.clone(), valid_aircraft.clone())]);
+
+        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+
+        let result = convert(line, &mapping);
+        assert!(result.is_some());
+
+        let status = result.unwrap();
+        assert_eq!(status.aircraft.id, valid_aircraft.id);
+        assert_eq!(status.position.latitude, 51.188667);
+        assert_eq!(status.speed, 12);
+        assert_eq!(status.vertical_speed, -0.09652);
+        assert_eq!(status.altitude, 185);
+        assert_eq!(status.turn_rate, 0.0);
+        assert_eq!(status.course, 86);
+        assert!(status.time_stamp > 0);
+    }
+
+    #[test]
+    fn test_capture_as_f32_works() {
+        let captures = Regex::new(r"(?<value>[\d.]+)")
+            .unwrap()
+            .captures("12.34")
+            .unwrap();
+
+        assert!(capture_as_f32(&captures, "value", 1.0).is_some_and(|f| f == 12.34));
+        assert!(capture_as_f32(&captures, "value", 2.0).is_some_and(|f| f == 24.68));
+    }
+
+    #[test]
+    fn test_capture_as_u16_works() {
+        let captures = Regex::new(r"(?<value>\d+)")
+            .unwrap()
+            .captures("1234")
+            .unwrap();
+
+        assert!(capture_as_u16(&captures, "value", 1.0).is_some_and(|f| f == 1234));
+        assert!(capture_as_u16(&captures, "value", 2.0).is_some_and(|f| f == 2468));
+    }
+
+    #[test]
+    fn test_capture_as_u16_fails_on_out_of_range() {
+        let captures = Regex::new(r"(?<value>\d+)")
+            .unwrap()
+            .captures("1234")
+            .unwrap();
+
+        assert!(capture_as_u16(&captures, "value", 10.0).is_some());
+        assert!(capture_as_u16(&captures, "value", 100.0).is_none());
+        assert!(capture_as_u16(&captures, "value", -1.0).is_none());
+    }
+
+    #[test]
+    fn test_capture_as_coordinate_value_works() {
+        let captures = Regex::new(r"(?<value>.+)")
+            .unwrap()
+            .captures("5111.32N")
+            .unwrap();
+
+        assert!(capture_as_coordinate_value(&captures, "value").is_some_and(|f| f == 51.188667));
+    }
+
+    #[test]
+    fn test_capture_as_coordinate_value_works_on_negative() {
+        let captures = Regex::new(r"(?<value>.+)")
+            .unwrap()
+            .captures("1029.35S")
+            .unwrap();
+
+        assert!(capture_as_coordinate_value(&captures, "value").is_some_and(|f| f == -10.489166));
     }
 }

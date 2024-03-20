@@ -56,7 +56,7 @@ async fn main() {
 
     join_set.spawn(async move {
         while let Some(status) = status_rx.recv().await {
-            update_state.push_status(status).await;
+            update_state.push_status(status);
         }
     });
 

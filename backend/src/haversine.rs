@@ -23,8 +23,8 @@ const EARTH_MEAN_RADIUS_KM: f32 = 6371.0;
 ///    longitude: 2.3376,
 /// };
 ///
-/// let distance = calculate_distance(&pos1, &pos2);
-/// assert_eq!(distance, 3.164);
+/// assert_eq!(calculate_distance(&pos1, &pos2), 3.1636212);
+/// assert_eq!(calculate_distance(&pos2, &pos1), 3.1636212);
 /// ```
 ///
 /// # Resources
@@ -44,4 +44,26 @@ pub fn calculate_distance(pos1: &Position, pos2: &Position) -> f32 {
     let c = 2.0 * a.sqrt().asin();
 
     c * EARTH_MEAN_RADIUS_KM
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn calculates_correct_distance() {
+        let pos1 = Position {
+            latitude: 48.858222,
+            longitude: 2.2945,
+        };
+
+        let pos2 = Position {
+            latitude: 48.86055,
+            longitude: 2.3376,
+        };
+
+        /* This value matches online calculators so I assume it's correct */
+        assert_eq!(calculate_distance(&pos1, &pos2), 3.1636212);
+        assert_eq!(calculate_distance(&pos2, &pos1), 3.1636212);
+    }
 }
