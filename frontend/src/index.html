@@ -26,8 +26,12 @@
         </p>
 
         <div id="whats-above-me">
-            <button type="button" class="btn btn-primary btn-lg" onclick="onClickWhatsAboveMe()">What's above
+            <button type="button" class="btn btn-primary btn-lg" onclick="onClickWhatsAboveMe()"
+                aria-describedby="whats-above-me-hint">What's above
                 me?</button>
+            <div id="whats-above-me-hint" class="form-text">
+                By clicking this button you accept that your current position is sent to the webserver.
+            </div>
         </div>
 
         <div class="alert alert-danger" role="alert" id="no-position-available" style="display: none;">
@@ -60,7 +64,12 @@
                     Range (in <i>km</i>) around given coordinates that should be filtered for.
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary" aria-describedby="submit-hint">Submit</button>
+                <div id="submit-hint" class="form-text">
+                    By clicking this button you accept that the given position is sent to the webserver.
+                </div>
+            </div>
         </form>
     </div>
 
