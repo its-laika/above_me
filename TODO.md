@@ -7,7 +7,8 @@
   - [x] API
 
 ## 🅰️ Frontend
-- [ ] Build a frontend
+- [x] Build a frontend
+- [ ] Add privacy site
 
 ## ☁️ Deploy
 - [ ] Docker support
