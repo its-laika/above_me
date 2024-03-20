@@ -4,8 +4,8 @@ function submit(event) {
     }
 
     const latitude = document.querySelector('#latitude').value;
-    const longitude = document.querySelector('#latitude').value;
-    const range = document.querySelector('#latitude').value;
+    const longitude = document.querySelector('#longitude').value;
+    const range = document.querySelector('#range').value;
 
     if (!latitude || !longitude || !range) {
         return;
