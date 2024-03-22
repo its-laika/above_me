@@ -146,6 +146,9 @@ fn capture_as_u16(captures: &Captures, name: &str, conversion_factor: f32) -> Op
         return None;
     }
 
+    /* We check for range and also sign. */
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     Some(converted_value as u16)
 }
 
@@ -175,15 +178,15 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
     let string_value = captures.name(name)?.as_str();
     let aprs_value = string_value
         .chars()
-        .filter(|c| c.is_numeric())
+        .filter(char::is_ascii_digit)
         .collect::<String>()
-        .parse::<u32>()
+        .parse::<f32>()
         .ok()?;
 
     let orientation = string_value.chars().last()?; /* "N", "E", "S" or "W" */
 
-    let degrees = aprs_value / 1_0000; // Separating   "dd" from "ddmmmm"
-    let minutes = (aprs_value % 1_0000) as f32 // Separating "mmmm" from "ddmmmm"
+    let degrees = f32::floor(aprs_value / 1_0000.0); // Separating   "dd" from "ddmmmm"
+    let minutes = f32::floor(aprs_value % 1_0000.0) // Separating "mmmm" from "ddmmmm"
                       / 60.0 // because 60 minutes = 1 degree
                       / 100.0; // because of the removed decimal separator
 
@@ -192,7 +195,7 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
         return None;
     }
 
-    let value = degrees as f32 + minutes;
+    let value = degrees + minutes;
 
     if orientation == 'S' || orientation == 'W' {
         Some(value * -1.0)
