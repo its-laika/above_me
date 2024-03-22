@@ -1,7 +1,5 @@
 use crate::{
-    aprs::{Position, Status},
-    haversine::calculate_distance,
-    time::get_current_timestamp,
+    aprs::Status, haversine::calculate_distance, position::Position, time::get_current_timestamp,
 };
 
 use std::{

@@ -1,5 +1,5 @@
 use super::state::App;
-use crate::aprs::{Position, Status};
+use crate::{aprs::Status, position::Position};
 use axum::{
     extract::{Path, State},
     routing::get,

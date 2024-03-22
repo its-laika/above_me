@@ -10,6 +10,7 @@ mod config;
 mod ddb;
 mod haversine;
 mod ogn;
+mod position;
 mod time;
 
 #[tokio::main]

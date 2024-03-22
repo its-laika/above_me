@@ -1,5 +1,5 @@
 pub use client::{init, Config};
-pub use status::{Position, Status};
+pub use status::Status;
 
 mod client;
 mod conversion;

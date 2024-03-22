@@ -4,10 +4,11 @@ use std::collections::HashMap;
 
 use crate::{
     ogn::{Aircraft, AircraftId},
+    position::Position,
     time::get_current_timestamp,
 };
 
-use super::status::{Position, Status};
+use super::status::Status;
 
 /// Regex pattern to extract data from valid APRS messages
 ///

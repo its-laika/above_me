@@ -1,4 +1,4 @@
-use crate::aprs::Position;
+use crate::position::Position;
 
 const EARTH_MEAN_RADIUS_KM: f32 = 6371.0;
 

@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
 
-use crate::ogn::Aircraft;
+use crate::{ogn::Aircraft, position::Position};
 
 /// Representation of an aircraft status
 #[derive(Clone, Serialize)]
@@ -22,15 +22,6 @@ pub struct Status {
     pub course: u16,
     /// Timestamp of receiving status
     pub time_stamp: u64,
-}
-
-/// Representation of a position
-#[derive(Clone, Serialize)]
-pub struct Position {
-    /// Latitude
-    pub latitude: f32,
-    /// Longitude
-    pub longitude: f32,
 }
 
 impl Display for Status {
@@ -55,16 +46,6 @@ impl Display for Status {
             self.turn_rate,
             self.course,
             self.time_stamp
-        )
-    }
-}
-
-impl Display for Position {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "[ Latitude: {}, Longitude: {} ]",
-            self.latitude, self.longitude
         )
     }
 }
