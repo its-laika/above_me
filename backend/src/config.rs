@@ -7,6 +7,7 @@ use crate::aprs;
 pub const PROJECT_CONFIG_FILE: &str = "../config";
 pub const BACKEND_CONFIG_FILE: &str = "config";
 pub const ENVIRONMENT_PREFIX: &str = "ABOVE_ME";
+const ENVIRONMENT_SEPARATOR: &str = "__";
 
 /// Representation of program configuration
 #[derive(Deserialize)]
@@ -30,7 +31,7 @@ pub fn load() -> Result<Config, ConfigError> {
     config::Config::builder()
         .add_source(File::new(PROJECT_CONFIG_FILE, FileFormat::Json).required(false))
         .add_source(File::new(BACKEND_CONFIG_FILE, FileFormat::Json).required(false))
-        .add_source(Environment::with_prefix(ENVIRONMENT_PREFIX))
+        .add_source(Environment::with_prefix(ENVIRONMENT_PREFIX).separator(ENVIRONMENT_SEPARATOR))
         .build()?
         .try_deserialize::<Config>()
 }

@@ -7,12 +7,18 @@ Via [API](backend) you can then request a list of gliders near a given position 
 A [website](frontend), which automatically gets your position, returns the list of gliders right above you.
 
 ## Configuration
+### Native
 There are three ways to configure:
 1. _[/](.)config.json_
 2. _[/backend](backend)/config.json_ (overrides _1._)
-3. Configuration by environment variables with the prefix _ABOVE\_ME\__ (overrides _1._ and _2._)
+3. By environment variables with the prefix _ABOVE\_ME\_\__ (overrides _1._ and _2._)
 
-See [config.example.json](config.example.json) for available config keys.
+See [config.example.json](config.example.json)¹ ² and [/docker/.env.example](docker/.env.example)³ for available configuration.
+
+### Docker
+Configure by [/docker/.env](/docker/.env) and run `docker compose up`. 
+
+See [/docker/.env.example](docker/.env.example) for available configuration.
 
 ## Docs
 API: see [openapi.yml](openapi.yml)

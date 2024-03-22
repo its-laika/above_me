@@ -11,5 +11,5 @@
 - [ ] Add privacy site
 
 ## ☁️ Deploy
-- [ ] Docker support
-  - [ ] Create a _docker-compose.yml_ configuration file
+- [x] Docker support
+  - [x] Create a _docker-compose.yml_ configuration file

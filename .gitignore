@@ -1,4 +1,5 @@
 /backend/target
 config.json
+.env
 /frontend/node_modules
 /frontend/dist

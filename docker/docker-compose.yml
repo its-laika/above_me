@@ -1,0 +1,26 @@
+services:
+  backend:
+    # image: TODO
+    build:
+      # Use this if you want to use your self built version.
+      context: ../backend
+    environment:
+      - ABOVE_ME__BIND_TO=0.0.0.0:9000
+    env_file:
+      - .env
+  frontend:
+    # image: TODO
+    build:
+      # Use this if you want to use your self built version.
+      context: ../frontend
+    restart: unless-stopped
+  gateway:
+    image: nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
