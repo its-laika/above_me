@@ -48,14 +48,14 @@ pub fn convert(line: &str) -> Option<Aircraft> {
 
     let call_sign = fields[INDEX_CALL_SIGN].to_string();
     let registration = fields[INDEX_REGISTRATION].to_string();
-    let aircraft_type = fields[INDEX_TYPE].to_string();
+    let model = fields[INDEX_TYPE].to_string();
     let visible = fields[INDEX_IDENTIFIED] == VALUE_YES && fields[INDEX_TRACKED] == VALUE_YES;
 
     Some(Aircraft {
         id,
         call_sign,
         registration,
-        aircraft_type,
+        model,
         visible,
     })
 }
@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(aircraft.id, "AB1234");
         assert_eq!(aircraft.call_sign, "G1");
         assert_eq!(aircraft.registration, "D-6507");
-        assert_eq!(aircraft.aircraft_type, "ASK-21");
+        assert_eq!(aircraft.model, "ASK-21");
         assert!(aircraft.visible);
     }
 

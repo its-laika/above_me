@@ -62,16 +62,10 @@ pub async fn init<'a, A: ToSocketAddrs>(
 
 /// Default handler for our (only) API route
 async fn handler(
-    Path((latitude, longitude, range)): Path<(f32, f32, u32)>,
+    Path((latitude, longitude, range)): Path<(f32, f32, f32)>,
     State(app): State<App>,
 ) -> Json<ResponseDto> {
     /* Ensure range can be used as f32 */
-    let range: u32 = if range > f32::MAX as u32 {
-        f32::MAX as u32
-    } else {
-        range
-    };
-
     let position = Position {
         latitude,
         longitude,
@@ -81,7 +75,7 @@ async fn handler(
         latitude,
         longitude,
         range,
-        states: app.get_filtered_states(&position, range as f32),
+        states: app.get_filtered_states(&position, range),
     })
 }
 
@@ -94,7 +88,7 @@ struct ResponseDto {
     /// Equals given longitude parameter
     longitude: f32,
     /// Equals given range parameter
-    range: u32,
+    range: f32,
     /// The aircraft states that match the given parameters
     states: Vec<Status>,
 }

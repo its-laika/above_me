@@ -11,7 +11,7 @@ pub struct Aircraft {
     /// Registration, e.g. "D-6507"
     pub registration: String,
     /// Aircraft model type, e.g. "ASK-21"
-    pub aircraft_type: String,
+    pub model: String,
     /// Should the aircraft be identified and tracked?
     pub visible: bool,
 }
@@ -24,7 +24,7 @@ impl Display for Aircraft {
         write!(
             f,
             "[ Id: {}, Callsign: {}, Registration: {}, Type: {}, Visible: {} ]",
-            self.id, self.call_sign, self.registration, self.aircraft_type, self.visible
+            self.id, self.call_sign, self.registration, self.model, self.visible
         )
     }
 }

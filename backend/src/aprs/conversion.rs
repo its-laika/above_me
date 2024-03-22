@@ -211,7 +211,7 @@ mod tests {
             id: String::from("AB1234"),
             call_sign: String::from("G1"),
             registration: String::from("D-6507"),
-            aircraft_type: String::from("ASK-21"),
+            model: String::from("ASK-21"),
             visible: true,
         };
 

@@ -47,11 +47,11 @@ paths:
         - name: range
           in: path
           description: Range around filter position
-          example: 15
+          example: 15.0
           required: true
           schema:
-            type: integer
-            format: int32
+            type: number
+            format: float
 
       responses:
         '200':
@@ -87,9 +87,9 @@ components:
           examples: [2.2945]
           description: Equals given longitude parameter
         range:
-          type: integer
-          format: int32
-          examples: [15]
+          type: number
+          format: float
+          examples: [15.0]
           description: Equals given range parameter
         states:
           type: array
@@ -159,7 +159,7 @@ components:
           type: string
           examples: ["D-6507"]
           description: Registration of aircraft
-        aircraft_type:
+        model:
           type: string
           examples: ["ASK-21"]
           description: Airplane model
