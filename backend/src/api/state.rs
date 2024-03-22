@@ -13,28 +13,28 @@ const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
 
 /// Our shared application state for the API
 #[derive(Clone)]
-pub struct AppState {
+pub struct App {
     /// Reference to all currently stored states
     states: Arc<Mutex<HashMap<String, Status>>>,
 }
 
-impl AppState {
-    /// Creates a new `AppState`
+impl App {
+    /// Creates a new `App`
     ///
     /// # Examples
     ///
     /// ```
-    /// use api::AppState;
+    /// use api::App;
     ///
-    /// let app_state = AppState::create();
+    /// let app = App::create();
     /// ```
-    pub fn create() -> AppState {
-        AppState {
+    pub fn create() -> App {
+        App {
             states: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
-    /// Returns the states in the `AppState` that match given filters
+    /// Returns the states in the `App` that match given filters
     ///
     /// # Arguments
     /// * `position` - The position that should be searched for
@@ -47,7 +47,7 @@ impl AppState {
     pub fn get_filtered_states(&self, position: &Position, range: f32) -> Vec<Status> {
         let mut states = self.states.lock().expect("Mutex was poisoned");
 
-        AppState::remove_outdated_states(&mut states);
+        App::remove_outdated_states(&mut states);
 
         states
             .values()
@@ -56,7 +56,7 @@ impl AppState {
             .collect::<Vec<Status>>()
     }
 
-    /// Stores / updates a new status in the `AppState`
+    /// Stores / updates a new status in the `App`
     ///
     /// # Arguments
     ///
@@ -66,12 +66,12 @@ impl AppState {
     ///
     /// * test `state::get_filtered_states_checks_age`
     /// * test `state::get_filtered_states_checks_range`
-    pub fn push_status(&self, status: Status) {
+    pub fn push_status(&self, new_status: Status) {
         let mut states = self.states.lock().expect("Mutex was poisoned");
 
-        AppState::remove_outdated_states(&mut states);
+        App::remove_outdated_states(&mut states);
 
-        states.insert(status.aircraft.id.clone(), status);
+        states.insert(new_status.aircraft.id.clone(), new_status);
     }
 
     /// Removes outdated states (by max age)
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn get_filtered_states_checks_age() {
-        let sut = AppState::create();
+        let sut = App::create();
         let current_timestamp = get_current_timestamp();
         let outdated_timestamp = current_timestamp - MAX_AGE_DIFF - 1;
 
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn get_filtered_states_checks_range() {
-        let sut = AppState::create();
+        let sut = App::create();
         let current_timestamp = get_current_timestamp();
 
         let position = Position {

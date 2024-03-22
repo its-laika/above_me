@@ -1,4 +1,4 @@
-pub use client::{init_aprs_client, ClientConfig};
+pub use client::{init, Config};
 pub use status::{Position, Status};
 
 mod client;

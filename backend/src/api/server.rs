@@ -1,4 +1,4 @@
-use super::state::AppState;
+use super::state::App;
 use crate::aprs::{Position, Status};
 use axum::{
     extract::{Path, State},
@@ -14,7 +14,7 @@ use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 /// # Arguments
 ///
 /// * `address` - The address that the server will bind to
-/// * `app_state` - The `AppState` that the API will use for its data
+/// * `app` - The `App` that the API will use for its data
 /// * `shutdown_rx` - A oneshot `Receiver<()>` that will shutdown the server gracefully when a message is received.
 ///
 /// # Returns
@@ -24,15 +24,15 @@ use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 /// # Examples
 ///
 /// ```
-/// use api::AppState;
+/// use api::App;
 /// use tokio::{spawn, sync::oneshot};
 ///
 /// let address = "127.0.0.1:8080";
 /// let (shutdown_tx, shutdown_rx) = oneshot::channel();
-/// let app_state = AppState::create();
+/// let app = App::create();
 ///
 /// spawn(async move {
-///     init_api_server(&address, app_state, shutdown_rx)
+///     api::init(&address, app, shutdown_rx)
 ///         .await
 ///         .expect("API server failed");
 /// });
@@ -40,14 +40,14 @@ use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 /// // Shuts down API server
 /// shutdown_tx.send(()).unwrap();
 /// ```
-pub async fn init_api_server<'a, A: ToSocketAddrs>(
+pub async fn init<'a, A: ToSocketAddrs>(
     address: &A,
-    app_state: AppState,
+    app: App,
     shutdown_rx: oneshot::Receiver<()>,
 ) -> Result<(), Error> {
     let app = Router::new()
         .route("/r/:latitude/:longitude/:range", get(handler))
-        .with_state(app_state);
+        .with_state(app);
 
     let listener = TcpListener::bind(address).await?;
 
@@ -63,7 +63,7 @@ pub async fn init_api_server<'a, A: ToSocketAddrs>(
 /// Default handler for our (only) API route
 async fn handler(
     Path((latitude, longitude, range)): Path<(f32, f32, u32)>,
-    State(app_state): State<AppState>,
+    State(app): State<App>,
 ) -> Json<ResponseDto> {
     /* Ensure range can be used as f32 */
     let range: u32 = if range > f32::MAX as u32 {
@@ -81,7 +81,7 @@ async fn handler(
         latitude,
         longitude,
         range,
-        states: app_state.get_filtered_states(&position, range as f32),
+        states: app.get_filtered_states(&position, range as f32),
     })
 }
 

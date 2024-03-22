@@ -63,9 +63,8 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// assert_eq!(result.unwrap().aircraft.id, valid_aircraft.id);
 /// ```
 pub fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
-    let captures = match LINE_REGEX.captures(line) {
-        Some(c) => c,
-        None => return None,
+    let Some(captures) = LINE_REGEX.captures(line) else {
+        return None;
     };
 
     let id = captures.name("id")?.as_str();
@@ -141,9 +140,9 @@ fn capture_as_f32(captures: &Captures, name: &str, conversion_factor: f32) -> Op
 fn capture_as_u16(captures: &Captures, name: &str, conversion_factor: f32) -> Option<u16> {
     let string_value = captures.name(name)?.as_str();
     let value = string_value.parse::<u16>().ok()?;
-    let converted_value = value as f32 * conversion_factor;
+    let converted_value = f32::from(value) * conversion_factor;
 
-    if converted_value < u16::MIN as f32 || converted_value > u16::MAX as f32 {
+    if converted_value < f32::from(u16::MIN) || converted_value > f32::from(u16::MAX) {
         return None;
     }
 
@@ -188,7 +187,7 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
                       / 60.0 // because 60 minutes = 1 degree
                       / 100.0; // because of the removed decimal separator
 
-    if (degrees as f64 + minutes as f64) > f32::MAX as f64 {
+    if (f64::from(degrees) + f64::from(minutes)) > f64::from(f32::MAX) {
         /* Don't think that's possible but just to be sure */
         return None;
     }

@@ -21,7 +21,7 @@ const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
 
 /// Configuration for connecting to an APRS server
 #[derive(Deserialize)]
-pub struct ClientConfig<A: ToSocketAddrs> {
+pub struct Config<A: ToSocketAddrs> {
     /// Address to connect to, e.g. "aprs.example.com"
     pub address: A,
     /// User name for authentication
@@ -59,7 +59,7 @@ pub struct ClientConfig<A: ToSocketAddrs> {
 /// let aircrafts: HashMap<AircraftId, Aircraft> = HashMap::new();
 ///
 /// spawn(async move {
-///     aprs::init_aprs_client(&config, status_tx, &aircrafts)
+///     aprs::init(&config, status_tx, &aircrafts)
 ///         .await
 ///         .expect("Client failed");
 /// });
@@ -73,8 +73,8 @@ pub struct ClientConfig<A: ToSocketAddrs> {
 ///
 /// Does not send keep alive messages to server as this does not seem necessary.
 /// see [https://lists.tapr.org/](https://lists.tapr.org/pipermail/aprssig_lists.tapr.org/2015-April/044264.html)
-pub async fn init_aprs_client<A: ToSocketAddrs>(
-    config: &ClientConfig<A>,
+pub async fn init<A: ToSocketAddrs>(
+    config: &Config<A>,
     status_tx: Sender<Status>,
     aircrafts: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {

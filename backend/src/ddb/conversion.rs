@@ -34,7 +34,7 @@ pub fn convert(line: &str) -> Option<Aircraft> {
 
     let fields = line
         .split(FIELD_SEPARATOR)
-        .map(|s| s.trim())
+        .map(str::trim)
         .collect::<Vec<&str>>();
 
     if fields.len() < 7 {

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use reqwest::IntoUrl;
 
 use super::conversion::convert;
-use super::error::HttpError;
+use super::error;
 use crate::ogn::{Aircraft, AircraftId};
 
 const LINE_BREAK: char = '\n';
@@ -23,13 +23,13 @@ const LINE_BREAK: char = '\n';
 /// ```
 pub async fn fetch_aircrafts<A: IntoUrl>(
     url: A,
-) -> Result<HashMap<AircraftId, Aircraft>, HttpError> {
+) -> Result<HashMap<AircraftId, Aircraft>, error::Http> {
     let response = reqwest::get(url)
         .await
-        .map_err(|_| HttpError::FetchError)?
+        .map_err(|_| error::Http::FetchError)?
         .text()
         .await
-        .map_err(|_| HttpError::ResponseError)?;
+        .map_err(|_| error::Http::ResponseError)?;
 
     Ok(response
         .split(LINE_BREAK)
