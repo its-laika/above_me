@@ -4,12 +4,9 @@ use reqwest::IntoUrl;
 
 use super::conversion::convert;
 use super::error::HttpError;
-use crate::aprs::Aircraft;
+use crate::ogn::{Aircraft, AircraftId};
 
 const LINE_BREAK: char = '\n';
-
-/// Alias for `String`, just for readability.
-pub type AircraftId = String;
 
 /// Fetches aircraft data from DDB
 ///

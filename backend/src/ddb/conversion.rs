@@ -1,4 +1,4 @@
-use crate::aprs::Aircraft;
+use crate::ogn::Aircraft;
 
 const VALUE_YES: &str = "Y";
 const FIELD_SEPARATOR: char = ',';

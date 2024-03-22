@@ -96,7 +96,7 @@ impl AppState {
 
 #[cfg(test)]
 mod tests {
-    use crate::aprs::Aircraft;
+    use crate::ogn::Aircraft;
 
     use super::*;
 

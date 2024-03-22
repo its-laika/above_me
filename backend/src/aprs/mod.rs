@@ -1,5 +1,5 @@
 pub use client::{init_aprs_client, ClientConfig};
-pub use status::{Aircraft, Position, Status};
+pub use status::{Position, Status};
 
 mod client;
 mod conversion;

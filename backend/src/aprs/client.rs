@@ -1,7 +1,7 @@
-use crate::ddb::AircraftId;
+use crate::ogn::{Aircraft, AircraftId};
 
+use super::conversion::convert;
 use super::status::Status;
-use super::{conversion::convert, Aircraft};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -50,8 +50,7 @@ pub struct ClientConfig<A: ToSocketAddrs> {
 /// # Examples
 ///
 /// ```
-/// use aprs::Aircraft;
-/// use ddb::AircraftId;
+/// use ogn::{Aircraft, AircraftId};
 /// use std::collections::HashMap;
 /// use tokio::{spawn, sync::mpsc::channel};
 ///

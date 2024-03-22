@@ -12,6 +12,7 @@ mod aprs;
 mod config;
 mod ddb;
 mod haversine;
+mod ogn;
 mod time;
 
 #[tokio::main]

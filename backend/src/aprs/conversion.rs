@@ -2,9 +2,12 @@ use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use std::collections::HashMap;
 
-use crate::{ddb::AircraftId, time::get_current_timestamp};
+use crate::{
+    ogn::{Aircraft, AircraftId},
+    time::get_current_timestamp,
+};
 
-use super::status::{Aircraft, Position, Status};
+use super::status::{Position, Status};
 
 /// Regex pattern to extract data from valid APRS messages
 ///
@@ -40,8 +43,7 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// # Examples
 ///
 /// ```
-/// use aprs::Aircraft;
-/// use ddb::AircraftId;
+/// use ogn::{Aircraft, AircraftId}
 /// use std::collections::HashMap;
 ///
 /// let valid_aircraft = Aircraft {
