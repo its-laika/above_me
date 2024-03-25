@@ -11,11 +11,11 @@ keywords = ["ogn", "openglidernet", "open-glider-net", "aircraft", "glider", "pl
 exclude = ["Dockerfile", "target/"]
 
 [dependencies]
-axum = "0.7.4"
+axum = "0.7.5"
 config = "0.14.0"
 once_cell = "1.19.0"
-regex = { version = "1.10.3", features = ["std"] }
-reqwest = "0.11"
+regex = { version = "1.10.4", features = ["std"] }
+reqwest = "0.12"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
