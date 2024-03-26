@@ -1,5 +1,5 @@
 function submit(event) {
-    document.getElementById('http-error').style.display = 'inherit';
+    document.getElementById('http-error').style.display = 'none';
 
     if (event) {
         event.preventDefault();
@@ -35,7 +35,7 @@ function submit(event) {
         .then(states =>
             Handlebars.templates.table({ states })
         )
-        .then((html) => {
+        .then(html => {
             document.getElementById('table-container').innerHTML = html;
         })
         .catch(error => {

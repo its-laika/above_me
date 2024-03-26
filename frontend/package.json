@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-dependencies": "rm -rf dist && rsync -av --exclude='*.handlebars' src/ dist/ && cp node_modules/handlebars/dist/handlebars.min.js dist/ && cp node_modules/bootstrap/dist/js/bootstrap.min.js dist && cp node_modules/bootstrap/dist/js/bootstrap.min.js.map dist && cp node_modules/bootstrap/dist/css/bootstrap.min.css dist",
+    "copy-dependencies": "rm -rf dist && rsync -av --exclude='*.handlebars' src/ dist/ && cp node_modules/handlebars/dist/handlebars.min.js dist/ && cp node_modules/bootstrap/dist/js/bootstrap.min.js dist && cp node_modules/bootstrap/dist/js/bootstrap.min.js.map dist && cp node_modules/bootstrap/dist/css/bootstrap.min.css dist && cp node_modules/bootstrap/dist/css/bootstrap.min.css.map dist",
     "compile": "handlebars src/table.handlebars -f dist/table.handlebars.compiled.js",
     "dev": "npm run copy-dependencies && npm run compile && cd dist && python3 -m http.server 8080"
   },
