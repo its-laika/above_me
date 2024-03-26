@@ -1,5 +1,6 @@
-/backend/target
-config.json
 .env
+config.json
+/backend/target
 /frontend/node_modules
 /frontend/dist
+/docker/privacy-policy.html

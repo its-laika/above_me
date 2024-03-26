@@ -1,4 +1,6 @@
 function submit(event) {
+    document.getElementById('http-error').style.display = 'inherit';
+
     if (event) {
         event.preventDefault();
     }
@@ -35,6 +37,10 @@ function submit(event) {
         )
         .then((html) => {
             document.getElementById('table-container').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('http-error').style.display = 'inherit';
+            console.error(error);
         })
 }
 

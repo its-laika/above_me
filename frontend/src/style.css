@@ -2,14 +2,48 @@ nav {
     margin-bottom: 3%;
 }
 
-#whats-above-me {
-    margin: 5%;
+.button-container {
+    margin: 25% 0;
     display: flex;
     justify-content: center;
     flex-direction: column;
 }
 
+form {
+    margin-top: 12.5%;
+}
+
+form .button-container {
+    margin-top: 12.5%;
+}
+
+@media (min-width: 767.98px) {
+    .button-container {
+        margin: 7.5% 0;
+    }
+
+    form {
+        margin-top: 7.5%;
+    }
+
+    form .button-container {
+        margin-top: 7.5%;
+    }
+}
+
 #table-container {
     margin: 5% 0;
     white-space: nowrap;
+}
+
+.alert {
+    display: none;
+}
+
+h3 {
+    text-align: center;
+}
+
+.form-text {
+    text-align: center;
 }
