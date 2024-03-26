@@ -1,4 +1,4 @@
-FROM node:latest AS install
+FROM node:alpine AS install
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY src/privacy-policy.html dist
 COPY src/main.js dist
 COPY src/style.css dist
 
-FROM nginx
+FROM nginx:alpine
 
 COPY --from=compile /app/dist /usr/share/nginx/html
 

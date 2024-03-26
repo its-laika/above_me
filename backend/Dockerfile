@@ -1,4 +1,4 @@
-FROM rust:latest
+FROM rust:latest AS build
 
 WORKDIR /app
 
@@ -6,6 +6,12 @@ COPY src src
 COPY Cargo.lock .
 COPY Cargo.toml .
 
-RUN cargo install --path .
+RUN cargo build --release
 
-CMD ["above_me"]
+FROM rust:slim
+
+WORKDIR /app
+
+COPY --from=build /app/target/release/above_me .
+
+CMD ["./above_me"]
