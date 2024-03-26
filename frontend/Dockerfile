@@ -20,6 +20,7 @@ COPY --from=install /app/node_modules/bootstrap/dist/js/bootstrap.min.js dist
 COPY --from=install /app/node_modules/bootstrap/dist/js/bootstrap.min.js.map dist
 COPY --from=install /app/node_modules/bootstrap/dist/css/bootstrap.min.css dist
 COPY src/index.html dist
+COPY src/privacy-policy.html dist
 COPY src/main.js dist
 COPY src/style.css dist
 
