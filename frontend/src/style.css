@@ -47,3 +47,13 @@ h3 {
 .form-text {
     text-align: center;
 }
+
+.links * {
+    padding-left: 10px;
+    color: white;
+    text-decoration: none;
+}
+
+.links *:hover {
+    text-decoration: underline;
+}
