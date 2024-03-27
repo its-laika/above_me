@@ -5,7 +5,7 @@ use crate::{
 
 use super::conversion::convert;
 use super::status::Status;
-use log::debug;
+use log::{debug, error};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -110,9 +110,17 @@ pub async fn init<A: ToSocketAddrs>(
     loop {
         let mut line = String::new();
 
-        if let 0 = tcp_stream_reader.read_line(&mut line).await? {
-            debug!("Connection closed");
-            return Ok(());
+        match tcp_stream_reader.read_line(&mut line).await {
+            Ok(0) => {
+                debug!("Connection closed");
+                return Ok(());
+            }
+            Ok(_) => (),
+            Err(e) => {
+                /* This may happen */
+                error!("Error while reading line: {e}");
+                continue;
+            }
         };
 
         debug!("Got line: '{line}'");
