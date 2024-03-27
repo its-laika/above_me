@@ -22,7 +22,7 @@ use super::status::Status;
 /// therefore we can discard all messages not in this range.
 ///
 /// see: [dbursem/ogn-client-php](https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87)
-const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])/(?<longitude>[0-9.]+[WE]).*?(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+).*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+).*?(?<verticalSpeed>[-0-9]+)fpm.*?(?<turnRate>[-.0-9]+)rot";
+const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS]).(?<longitude>[0-9.]+[WE]).(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+).*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+).*?(?<verticalSpeed>[-0-9]+)fpm.*?(?<turnRate>[-.0-9]+)rot";
 
 /// Factor to convert knots to km/h
 const FACTOR_KNOTS_TO_KM_H: f32 = 1.852;
