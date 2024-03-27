@@ -17,11 +17,11 @@ const LINE_BREAK: char = '\n';
 /// # Examples
 /// ```
 /// let url = "https://ddb.example.com/aircraft"
-/// let aircrafts = fetch_aircrafts(url)
+/// let aircraft = fetch_aircraft(url)
 ///     .await
 ///     .expect("Could not fetch DDB data");
 /// ```
-pub async fn fetch_aircrafts<A: IntoUrl>(
+pub async fn fetch_aircraft<A: IntoUrl>(
     url: A,
 ) -> Result<HashMap<AircraftId, Aircraft>, error::Http> {
     let response = reqwest::get(url)

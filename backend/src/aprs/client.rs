@@ -41,7 +41,7 @@ pub struct Config<A: ToSocketAddrs> {
 ///
 /// * `config` - Information on where to connect & login
 /// * `status_tx` - A `Sender<String>` that will send incoming states from the server
-/// * `aircrafts` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
+/// * `aircraft` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
 ///
 /// # Returns
 ///
@@ -56,10 +56,10 @@ pub struct Config<A: ToSocketAddrs> {
 ///
 /// let config = aprs::ClientConfig { ... };
 /// let (status_tx, status_rx) = channel(32);
-/// let aircrafts: HashMap<AircraftId, Aircraft> = HashMap::new();
+/// let aircraft: HashMap<AircraftId, Aircraft> = HashMap::new();
 ///
 /// spawn(async move {
-///     aprs::init(&config, status_tx, &aircrafts)
+///     aprs::init(&config, status_tx, &aircraft)
 ///         .await
 ///         .expect("Client failed");
 /// });
@@ -76,7 +76,7 @@ pub struct Config<A: ToSocketAddrs> {
 pub async fn init<A: ToSocketAddrs>(
     config: &Config<A>,
     status_tx: Sender<Status>,
-    aircrafts: &HashMap<AircraftId, Aircraft>,
+    aircraft: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
 
@@ -108,7 +108,7 @@ pub async fn init<A: ToSocketAddrs>(
             continue;
         }
 
-        if let Some(status) = convert(&line, aircrafts) {
+        if let Some(status) = convert(&line, aircraft) {
             if !status.aircraft.visible {
                 continue;
             }

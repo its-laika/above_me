@@ -1,4 +1,4 @@
-pub use client::fetch_aircrafts;
+pub use client::fetch_aircraft;
 
 mod client;
 mod conversion;

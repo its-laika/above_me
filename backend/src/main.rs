@@ -1,4 +1,4 @@
-use ddb::fetch_aircrafts;
+use ddb::fetch_aircraft;
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinSet,
@@ -23,7 +23,7 @@ async fn main() {
         }
     };
 
-    let aircrafts = match fetch_aircrafts(&config.ddb_url).await {
+    let aircraft = match fetch_aircraft(&config.ddb_url).await {
         Ok(a) => a,
         Err(e) => {
             println!("Could not fetch aircraft data: {e}");

@@ -39,7 +39,7 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// # Arguments
 ///
 /// * `line` - The APRS line of the APRS server
-/// * `aircrafts` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
+/// * `aircraft` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
 ///
 /// # Examples
 ///
@@ -63,14 +63,14 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// assert!(result.is_some());
 /// assert_eq!(result.unwrap().aircraft.id, valid_aircraft.id);
 /// ```
-pub fn convert(line: &str, aircrafts: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
+pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
     let Some(captures) = LINE_REGEX.captures(line) else {
         return None;
     };
 
     let id = captures.name("id")?.as_str();
 
-    let aircraft = match aircrafts.get(id) {
+    let aircraft = match aircraft.get(id) {
         Some(a) => a.clone(),
         None => return None,
     };
