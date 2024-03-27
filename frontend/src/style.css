@@ -3,7 +3,7 @@ nav {
 }
 
 .button-container {
-    margin: 25% 0;
+    margin: 20% 0;
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -17,17 +17,17 @@ form .button-container {
     margin-top: 12.5%;
 }
 
-@media (min-width: 767.98px) {
+@media (min-width: 576px) {
     .button-container {
-        margin: 7.5% 0;
+        margin: 5% 0;
     }
 
     form {
-        margin-top: 7.5%;
+        margin-top: 5%;
     }
 
     form .button-container {
-        margin-top: 7.5%;
+        margin-top: 5%;
     }
 }
 
