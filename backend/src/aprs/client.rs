@@ -1,4 +1,7 @@
-use crate::ogn::{Aircraft, AircraftId};
+use crate::{
+    ogn::{Aircraft, AircraftId},
+    time::get_current_timestamp,
+};
 
 use super::conversion::convert;
 use super::status::Status;
@@ -8,7 +11,7 @@ use std::{
     collections::HashMap,
     io::{Error, ErrorKind},
 };
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader, BufWriter};
 use tokio::{
     io::AsyncWriteExt,
     net::{TcpStream, ToSocketAddrs},
@@ -19,6 +22,10 @@ use tokio::{
 const IDENTIFIER_COMMENT: char = '#';
 /// Messages starting with this sequence are connection details
 const IDENTIFIER_TCP_PACKET: &str = "TCPIP*";
+/// Approx. interval of keep alive messages to the server (in seconds)
+const KEEPALIVE_INTERVAL_SECONDS: u64 = 60 * 10;
+/// Keep alive message
+const KEEPALIVE_MESSAGE: &[u8; 12] = b"#keep alive\n";
 
 /// Configuration for connecting to an APRS server
 #[derive(Deserialize)]
@@ -69,17 +76,16 @@ pub struct Config<A: ToSocketAddrs> {
 ///     println!("Got status: {}", status);
 /// }
 /// ```
-///
-/// # Notes
-///
-/// Does not send keep alive messages to server as this does not seem necessary.
-/// see [https://lists.tapr.org/](https://lists.tapr.org/pipermail/aprssig_lists.tapr.org/2015-April/044264.html)
 pub async fn init<A: ToSocketAddrs>(
     config: &Config<A>,
     status_tx: Sender<Status>,
     aircraft: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
+    let (mut read_half, mut write_half) = tcp_stream.split();
+
+    let mut tcp_stream_reader = BufReader::new(&mut read_half);
+    let mut tcp_stream_writer = BufWriter::new(&mut write_half);
 
     /* Login to server */
     let login_message = if let Some(filter) = &config.filter {
@@ -94,18 +100,36 @@ pub async fn init<A: ToSocketAddrs>(
         )
     };
 
-    tcp_stream.write_all(login_message.as_bytes()).await?;
+    let mut last_keep_alive_timestamp = get_current_timestamp();
 
-    let mut buf_reader = BufReader::new(&mut tcp_stream);
+    tcp_stream_writer
+        .write_all(login_message.as_bytes())
+        .await?;
+    tcp_stream_writer.flush().await?;
+
     loop {
         let mut line = String::new();
 
-        if let 0 = buf_reader.read_line(&mut line).await? {
+        if let 0 = tcp_stream_reader.read_line(&mut line).await? {
             debug!("Connection closed");
             return Ok(());
         };
 
         debug!("Got line: '{line}'");
+
+        /* APRS server sends a keep alive ever 20 - 30 seconds. As we don't want to worry about
+         * *another* async interval shit, we just check if the last keep alive was 10 - 11 mins
+         * ago and, if so, send a new one. We won't run into a timeout if we're 30 seconds late,
+         * so KISS FTW. */
+        let current_timestamp = get_current_timestamp();
+        if current_timestamp - last_keep_alive_timestamp >= KEEPALIVE_INTERVAL_SECONDS {
+            last_keep_alive_timestamp = current_timestamp;
+
+            tcp_stream_writer.write_all(KEEPALIVE_MESSAGE).await?;
+            tcp_stream_writer.flush().await?;
+
+            debug!("Sent keep alive");
+        }
 
         if line.starts_with(IDENTIFIER_COMMENT) || line.contains(IDENTIFIER_TCP_PACKET) {
             continue;
