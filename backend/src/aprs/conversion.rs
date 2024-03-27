@@ -1,3 +1,4 @@
+use log::debug;
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use std::collections::HashMap;
@@ -65,6 +66,7 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// ```
 pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
     let Some(captures) = LINE_REGEX.captures(line) else {
+        debug!("Line not parseable");
         return None;
     };
 
@@ -72,7 +74,10 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
 
     let aircraft = match aircraft.get(id) {
         Some(a) => a.clone(),
-        None => return None,
+        None => {
+            debug!("Unknown aircaft id '{id}'");
+            return None;
+        }
     };
 
     let status = Status {

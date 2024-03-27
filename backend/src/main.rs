@@ -1,4 +1,5 @@
 use ddb::fetch_aircraft;
+use log::{error, info, warn};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinSet,
@@ -15,18 +16,28 @@ mod time;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
+    info!("Loading config...");
     let config = match config::load() {
-        Ok(c) => c,
+        Ok(c) => {
+            info!("Loaded config successfully!");
+            c
+        }
         Err(e) => {
-            println!("Could not load config: {e}");
+            error!("Could not load config: {e}");
             return;
         }
     };
 
+    info!("Loading aircraft data...");
     let aircraft = match fetch_aircraft(&config.ddb_url).await {
-        Ok(a) => a,
+        Ok(a) => {
+            info!("Loaded aircraft data successfully!");
+            a
+        }
         Err(e) => {
-            println!("Could not fetch aircraft data: {e}");
+            error!("Could not fetch aircraft data: {e}");
             return;
         }
     };
@@ -40,14 +51,19 @@ async fn main() {
     let app_update = app.clone();
 
     join_set.spawn(async move {
+        info!("Initializing API...");
         api::init(&config.bind_to, app, shutdown_rx)
             .await
             .expect("Could not start API server");
     });
 
     join_set.spawn(async move {
-        if let Err(e) = aprs::init(&config.aprs, status_tx, &aircrafts).await {
-            println!("Client stopped with error: {e}");
+        info!("Initializing APRS client...");
+
+        if let Err(e) = aprs::init(&config.aprs, status_tx, &aircraft).await {
+            error!("Client stopped with error: {e}");
+        } else {
+            warn!("Client disconnected");
         }
 
         shutdown_tx.send(()).unwrap();
@@ -60,4 +76,5 @@ async fn main() {
     });
 
     while (join_set.join_next().await).is_some() {}
+    info!("Shutdown");
 }

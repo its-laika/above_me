@@ -2,6 +2,7 @@ use crate::ogn::{Aircraft, AircraftId};
 
 use super::conversion::convert;
 use super::status::Status;
+use log::debug;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -100,18 +101,26 @@ pub async fn init<A: ToSocketAddrs>(
         let mut line = String::new();
 
         if let 0 = buf_reader.read_line(&mut line).await? {
-            /* Connection closed. */
+            debug!("Connection closed");
             return Ok(());
         };
 
-        if line.starts_with(IDENTIFIER_COMMENT) || line.starts_with(IDENTIFIER_TCP_PACKET) {
+        debug!("Got line: '{line}'");
+
+        if line.starts_with(IDENTIFIER_COMMENT) || line.contains(IDENTIFIER_TCP_PACKET) {
             continue;
         }
 
         if let Some(status) = convert(&line, aircraft) {
             if !status.aircraft.visible {
+                debug!("Got message for non-visible aircraft. Discard.");
                 continue;
             }
+
+            debug!(
+                "Passing message for aircraft '{}'",
+                status.aircraft.call_sign
+            );
 
             status_tx
                 .send(status)
