@@ -147,10 +147,6 @@ components:
         - id
       type: object
       properties:
-        id:
-          type: string
-          examples: ["ABC123"]
-          description: DDB id of aircraft
         call_sign:
           type: string
           examples: ["G1"]
@@ -163,10 +159,6 @@ components:
           type: string
           examples: ["ASK-21"]
           description: Airplane model
-        visible:
-          type: boolean
-          examples: [true]
-          description: Tells whether aircraft is visible & tracked. Always true.
     Position:
       required:
         - latitude

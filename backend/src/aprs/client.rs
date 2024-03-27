@@ -141,10 +141,7 @@ pub async fn init<A: ToSocketAddrs>(
                 continue;
             }
 
-            debug!(
-                "Passing message for aircraft '{}'",
-                status.aircraft.call_sign
-            );
+            debug!("Passing message for aircraft '{}'", status.aircraft.id);
 
             status_tx
                 .send(status)

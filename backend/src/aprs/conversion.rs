@@ -32,6 +32,8 @@ const FACTOR_FT_TO_M: f32 = 0.3048;
 const FACTOR_FT_MIN_TO_M_SEC: f32 = 0.00508;
 /// Factor to convert "turns/2min" to "turns/min"
 const FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN: f32 = 0.5;
+/// Placeholder for unknown aicraft values
+const UNKNOWN: &str = "";
 
 static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap());
 
@@ -76,7 +78,14 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
         Some(a) => a.clone(),
         None => {
             debug!("Unknown aircaft id '{id}'");
-            return None;
+
+            Aircraft {
+                id: String::from(id),
+                call_sign: String::from(UNKNOWN),
+                registration: String::from(UNKNOWN),
+                model: String::from(UNKNOWN),
+                visible: true,
+            }
         }
     };
 
@@ -240,6 +249,23 @@ mod tests {
         assert_eq!(status.turn_rate, 0.0);
         assert_eq!(status.course, 86);
         assert!(status.time_stamp > 0);
+    }
+
+    #[test]
+    fn convert_works_with_unknown_aircraft() {
+        let mapping = HashMap::new();
+
+        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+
+        let result = convert(line, &mapping);
+        assert!(result.is_some());
+
+        let status = result.unwrap();
+        assert_eq!(status.aircraft.id, "AB1234");
+        assert_eq!(status.aircraft.call_sign, "");
+        assert_eq!(status.aircraft.registration, "");
+        assert_eq!(status.aircraft.model, "");
+        assert!(status.aircraft.visible);
     }
 
     #[test]

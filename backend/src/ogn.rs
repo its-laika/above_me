@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter, Result};
 #[derive(Clone, Serialize)]
 pub struct Aircraft {
     /// DDB id of the aircraft
+    #[serde(skip_serializing)]
     pub id: String,
     /// Callsign, e.g. "G1"
     pub call_sign: String,
@@ -13,6 +14,7 @@ pub struct Aircraft {
     /// Aircraft model type, e.g. "ASK-21"
     pub model: String,
     /// Should the aircraft be identified and tracked?
+    #[serde(skip_serializing)]
     pub visible: bool,
 }
 
