@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::{
     aprs::Status, haversine::calculate_distance, position::Position, time::get_current_timestamp,
 };
@@ -14,6 +16,15 @@ const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
 pub struct App {
     /// Reference to all currently stored states
     states: Arc<Mutex<HashMap<String, Status>>>,
+}
+
+/// DTO for status overview
+#[derive(Serialize)]
+pub struct Overview {
+    /// Number of currently stored states
+    pub count: usize,
+    /// Timestamp of last update, if states is not empty
+    pub last_update: Option<u64>,
 }
 
 impl App {
@@ -70,6 +81,25 @@ impl App {
         App::remove_outdated_states(&mut states);
 
         states.insert(new_status.aircraft.id.clone(), new_status);
+    }
+
+    /// Returns an overview of the currently stored states
+    ///
+    /// # Examples
+    ///
+    /// * test `state::get_overview_works`
+    pub fn get_overview(&self) -> Overview {
+        let mut states = self.states.lock().expect("Mutex was poisoned");
+
+        App::remove_outdated_states(&mut states);
+
+        Overview {
+            count: states.len(),
+            last_update: states
+                .values()
+                .max_by(|s1, s2| s1.time_stamp.cmp(&s2.time_stamp))
+                .map(|s| s.time_stamp),
+        }
     }
 
     /// Removes outdated states (by max age)
@@ -165,6 +195,39 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert!(result.iter().any(|s| s.aircraft.id == "AB1234"));
         assert!(result.iter().any(|s| s.aircraft.id == "CD5678"));
+    }
+
+    #[test]
+    fn get_overview_works() {
+        let sut = App::create();
+
+        let result_empty = sut.get_overview();
+
+        let current_timestamp = get_current_timestamp();
+
+        let position = Position {
+            latitude: 48.858222,
+            longitude: 2.2945,
+        };
+
+        sut.push_status(create_status(
+            String::from("AB1234"),
+            position.clone(),
+            current_timestamp - 50,
+        ));
+
+        sut.push_status(create_status(
+            String::from("CD5678"),
+            position.clone(),
+            current_timestamp,
+        ));
+
+        let result_filled = sut.get_overview();
+
+        assert_eq!(result_empty.count, 0);
+        assert_eq!(result_empty.last_update, None);
+        assert_eq!(result_filled.count, 2);
+        assert_eq!(result_filled.last_update, Some(current_timestamp));
     }
 
     fn create_status(aircraft_id: String, position: Position, time_stamp: u64) -> Status {

@@ -1,11 +1,6 @@
+use super::routes::{aircraft, overview};
 use super::state::App;
-use crate::{aprs::Status, position::Position};
-use axum::{
-    extract::{Path, State},
-    routing::get,
-    Json, Router,
-};
-use serde::Serialize;
+use axum::{routing::get, Router};
 use std::io::Error;
 use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 
@@ -46,7 +41,8 @@ pub async fn init<'a, A: ToSocketAddrs>(
     shutdown_rx: oneshot::Receiver<()>,
 ) -> Result<(), Error> {
     let app = Router::new()
-        .route("/r/:latitude/:longitude/:range", get(handler))
+        .route("/r/:latitude/:longitude/:range", get(aircraft::handler))
+        .route("/status", get(overview::handler))
         .with_state(app);
 
     let listener = TcpListener::bind(address).await?;
@@ -58,37 +54,4 @@ pub async fn init<'a, A: ToSocketAddrs>(
         .await?;
 
     Ok(())
-}
-
-/// Default handler for our (only) API route
-async fn handler(
-    Path((latitude, longitude, range)): Path<(f32, f32, f32)>,
-    State(app): State<App>,
-) -> Json<ResponseDto> {
-    /* Ensure range can be used as f32 */
-    let position = Position {
-        latitude,
-        longitude,
-    };
-
-    Json(ResponseDto {
-        latitude,
-        longitude,
-        range,
-        states: app.get_filtered_states(&position, range),
-    })
-}
-
-/// Response DTO for our (only) API route
-/// see [openapi.yml](../../openapi.yml)
-#[derive(Serialize)]
-struct ResponseDto {
-    /// Equals given latitude parameter
-    latitude: f32,
-    /// Equals given longitude parameter
-    longitude: f32,
-    /// Equals given range parameter
-    range: f32,
-    /// The aircraft states that match the given parameters
-    states: Vec<Status>,
 }

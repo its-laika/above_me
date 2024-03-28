@@ -17,6 +17,23 @@ tags:
   - name: aircaft
     description: Information about aircraft
 paths:
+  /status:
+    get:
+      tags:
+        - status
+      summary: Gets current API status
+      description: |-
+        Returns information about last status update and number of currently
+        stored states. Can be helpful to check whether the backend still
+        receives new states.
+      operationId: getStatus
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatus"
   /r/{latitude}/{longitude}/{range}:
     get:
       tags:
@@ -177,4 +194,19 @@ components:
           description: Longitude
     Error:
       type: string
-      examples: ["Invalid URL: Cannot parse value at index 2 with value `\"-50000\"` to a `u32`"]
+      examples:
+        [
+          'Invalid URL: Cannot parse value at index 2 with value `"-50000"` to a `u32`',
+        ]
+    SystemStatus:
+      type: object
+      properties:
+        count:
+          type: integer
+          examples: [40]
+          description: Number of currently stored states
+        last_update:
+          type: integer
+          format: int64
+          examples: [670932000]
+          description: Unix timestamp of latest incoming state
