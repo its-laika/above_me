@@ -1,6 +1,6 @@
 [package]
 name = "above_me"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Niklas 'Curly' Schmidt <36010519+neon-JS@users.noreply.github.com>"]
 description = "This project contains the backend for above_me, a service that lets you see what aircraft are currently flying above you."

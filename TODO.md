@@ -1,6 +1,7 @@
 # TODOs
 
 ## 🦀 Backend
+- [ ] Add aircraft type parsing ([doc](http://wiki.glidernet.org/wiki:ogn-flavoured-aprs#toc2))
 - [x] Check whether APRS client needs to send regular keep alives
 - [x] Documentation
   - [x] Code
