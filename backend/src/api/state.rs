@@ -240,11 +240,11 @@ mod tests {
                 visible: true,
             },
             position,
-            speed: 132,
-            vertical_speed: 0.32,
-            altitude: 3431,
-            turn_rate: 3.5,
-            course: 152,
+            speed: None,
+            vertical_speed: None,
+            altitude: None,
+            turn_rate: None,
+            course: None,
             time_stamp,
         }
     }

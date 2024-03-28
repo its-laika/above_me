@@ -21,11 +21,11 @@ function submit(event) {
         .then(states =>
             states.map(s => ({
                 ...s,
-                speed: s.speed.toFixed(0),
-                vertical_speed: s.vertical_speed.toFixed(1),
-                altitude: s.altitude.toFixed(0),
-                turn_rate: s.turn_rate.toFixed(1),
-                course: s.course.toFixed(0),
+                speed: s.speed?.toFixed(0),
+                vertical_speed: s.vertical_speed?.toFixed(1),
+                altitude: s.altitude?.toFixed(0),
+                turn_rate: s.turn_rate?.toFixed(1),
+                course: s.course?.toFixed(0),
                 position: {
                     longitude: formatCoordinateValue(s.position.longitude, 'E', 'W'),
                     latitude: formatCoordinateValue(s.position.latitude, 'N', 'S'),

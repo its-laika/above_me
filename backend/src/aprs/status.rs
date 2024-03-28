@@ -11,15 +11,15 @@ pub struct Status {
     /// Position of aircraft
     pub position: Position,
     /// Speed in _km/h_
-    pub speed: u16,
+    pub speed: Option<u16>,
     /// Vertical speed in _m/s_
-    pub vertical_speed: f32,
+    pub vertical_speed: Option<f32>,
     /// Altitude in _m_
-    pub altitude: u16,
+    pub altitude: Option<u16>,
     /// Turn rate in _turns/min_
-    pub turn_rate: f32,
+    pub turn_rate: Option<f32>,
     /// Course of aircraft
-    pub course: u16,
+    pub course: Option<u16>,
     /// Timestamp of receiving status
     pub time_stamp: u64,
 }
@@ -31,11 +31,11 @@ impl Display for Status {
             "[ 
     Aircraft: {},
     Position: {},
-    Speed: {},
-    Vertial speed: {},
-    Altitude: {},
-    Turn rate: {},
-    Course: {},
+    Speed: {:?},
+    Vertial speed: {:?},
+    Altitude: {:?},
+    Turn rate: {:?},
+    Course: {:?},
     Timestamp: {}
 ]",
             self.aircraft,

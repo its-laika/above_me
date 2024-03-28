@@ -57,3 +57,7 @@ h3 {
 .links *:hover {
     text-decoration: underline;
 }
+
+.variable-value {
+    text-align: right;
+}

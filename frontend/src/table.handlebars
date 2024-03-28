@@ -15,21 +15,33 @@
         {{#each states}}
         <tr>
             <td class="variable-value">
-                <span>
-                    {{#if aircraft.registration}}
-                    <b>{{aircraft.registration}}</b><br>
-                    {{aircraft.model}}
-                    {{/if}}
-                    {{#unless aircraft.registration}}
-                    unknown
-                    {{/unless}}
-                </span>
+                {{#if aircraft.registration}}
+                <b>{{aircraft.registration}}</b>
+                {{#if aircraft.call_sign}}({{aircraft.call_sign}}){{/if}}
+                <br>{{aircraft.model}}
+                {{/if}}
+                {{#unless aircraft.registration}}unknown{{/unless}}
             </td>
-            <td class="variable-value"><span>{{altitude}} <i>m</i></span></td>
-            <td class="variable-value"><span>{{speed}} <i>km/h</i></span></td>
-            <td class="variable-value"><span>{{course}}<i>°</i></span></td>
-            <td class="variable-value"><span>{{vertical_speed}} <i>m/s</i></span></td>
-            <td class="variable-value"><span>{{turn_rate}}</span> <i>turns/min</i></td>
+            <td class="variable-value">
+                {{#if altitude}}{{altitude}} <i>m</i>{{/if}}
+                {{#unless altitude}}-{{/unless}}
+            </td>
+            <td class="variable-value">
+                {{#if speed}}{{speed}} <i>km/h</i>{{/if}}
+                {{#unless speed}}-{{/unless}}
+            </td>
+            <td class="variable-value">
+                {{#if course}}{{course}} <i>°</i>{{/if}}
+                {{#unless course}}-{{/unless}}
+            </td>
+            <td class="variable-value">
+                {{#if vertical_speed}}{{vertical_speed}} <i>m/s</i>{{/if}}
+                {{#unless vertical_speed}}-{{/unless}}
+            </td>
+            <td class="variable-value">
+                {{#if turn_rate}}{{turn_rate}} <i>turns/min</i>{{/if}}
+                {{#unless turn_rate}}-{{/unless}}
+            </td>
             <td class="variable-value">
                 {{position.latitude}}<br>
                 {{position.longitude}}

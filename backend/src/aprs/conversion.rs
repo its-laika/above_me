@@ -22,7 +22,7 @@ use super::status::Status;
 /// therefore we can discard all messages not in this range.
 ///
 /// see: [dbursem/ogn-client-php](https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87)
-const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS]).(?<longitude>[0-9.]+[WE]).(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+).*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+).*?(?<verticalSpeed>[-0-9]+)fpm.*?(?<turnRate>[-.0-9]+)rot";
+const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])[/\\]?.(?<longitude>[0-9.]+[WE]).(?:(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+))?.*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+)(?: (?<verticalSpeed>[-+0-9]+)fpm)?(?: (?<turnRate>[-+.0-9]+)rot)?";
 
 /// Factor to convert knots to km/h
 const FACTOR_KNOTS_TO_KM_H: f32 = 1.852;
@@ -74,18 +74,17 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
 
     let id = captures.name("id")?.as_str();
 
-    let aircraft = match aircraft.get(id) {
-        Some(a) => a.clone(),
-        None => {
-            debug!("Unknown aircaft id '{id}'");
+    let aircraft = if let Some(a) = aircraft.get(id) {
+        a.clone()
+    } else {
+        debug!("Unknown aircaft id '{id}'");
 
-            Aircraft {
-                id: String::from(id),
-                call_sign: String::from(UNKNOWN),
-                registration: String::from(UNKNOWN),
-                model: String::from(UNKNOWN),
-                visible: true,
-            }
+        Aircraft {
+            id: String::from(id),
+            call_sign: String::from(UNKNOWN),
+            registration: String::from(UNKNOWN),
+            model: String::from(UNKNOWN),
+            visible: true,
         }
     };
 
@@ -95,11 +94,11 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
             latitude: capture_as_coordinate_value(&captures, "latitude")?,
             longitude: capture_as_coordinate_value(&captures, "longitude")?,
         },
-        speed: capture_as_u16(&captures, "speed", FACTOR_KNOTS_TO_KM_H)?,
-        vertical_speed: capture_as_f32(&captures, "verticalSpeed", FACTOR_FT_MIN_TO_M_SEC)?,
-        altitude: capture_as_u16(&captures, "altitude", FACTOR_FT_TO_M)?,
-        turn_rate: capture_as_f32(&captures, "turnRate", FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN)?,
-        course: capture_as_u16(&captures, "course", 1.0)?,
+        speed: capture_as_u16(&captures, "speed", FACTOR_KNOTS_TO_KM_H),
+        vertical_speed: capture_as_f32(&captures, "verticalSpeed", FACTOR_FT_MIN_TO_M_SEC),
+        altitude: capture_as_u16(&captures, "altitude", FACTOR_FT_TO_M),
+        turn_rate: capture_as_f32(&captures, "turnRate", FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN),
+        course: capture_as_u16(&captures, "course", 1.0),
         time_stamp: get_current_timestamp(),
     };
 
@@ -235,20 +234,85 @@ mod tests {
 
         let mapping = HashMap::from([(valid_aircraft.id.clone(), valid_aircraft.clone())]);
 
-        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+        let data_set = &[
+            (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz",
+                valid_aircraft.id.as_str(),
+                51.188667,
+                Some(12),
+                Some(-0.09652),
+                Some(185),
+                Some(0.0),
+                Some(86)
+            ),
+            (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N\\00102.04W'086/007/A=000607 id0AAB1234 5.5dB 3e -4.3kHz", 
+                valid_aircraft.id.as_str(),
+                51.188667,
+                Some(12),
+                None,
+                Some(185),
+                None,
+                Some(86)
+            ),
+            (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N\\00102.04W' id0AAB1234 5.5dB 3e -4.3kHz",
+                valid_aircraft.id.as_str(),
+                51.188667,
+                None,
+                None,
+                None,
+                None,
+                None
+            ),
+             (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W' id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz",
+                valid_aircraft.id.as_str(),
+                51.188667,
+                None,
+                Some(-0.09652),
+                None,
+                Some(0.0),
+                None
+            ),
+            (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 +0.0rot 5.5dB 3e -4.3kHz",
+                valid_aircraft.id.as_str(),
+                51.188667,
+                Some(12),
+                None,
+                Some(185),
+                Some(0.0),
+                Some(86)
+            ),
+            (
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W' id0AAB1234 +0.0rot 5.5dB 3e -4.3kHz",
+                valid_aircraft.id.as_str(),
+                51.188667,
+                None,
+                None,
+                None,
+                Some(0.0),
+                None
+            ),
+        ];
 
-        let result = convert(line, &mapping);
-        assert!(result.is_some());
+        for (line, aircraft_id, latitude, speed, vertical_speed, altitude, turn_rate, course) in
+            data_set
+        {
+            let result = convert(line, &mapping);
+            assert!(result.is_some());
 
-        let status = result.unwrap();
-        assert_eq!(status.aircraft.id, valid_aircraft.id);
-        assert_eq!(status.position.latitude, 51.188667);
-        assert_eq!(status.speed, 12);
-        assert_eq!(status.vertical_speed, -0.09652);
-        assert_eq!(status.altitude, 185);
-        assert_eq!(status.turn_rate, 0.0);
-        assert_eq!(status.course, 86);
-        assert!(status.time_stamp > 0);
+            let status = result.unwrap();
+            assert_eq!(&status.aircraft.id, aircraft_id);
+            assert_eq!(&status.position.latitude, latitude);
+            assert_eq!(&status.speed, speed);
+            assert_eq!(&status.vertical_speed, vertical_speed);
+            assert_eq!(&status.altitude, altitude);
+            assert_eq!(&status.turn_rate, turn_rate);
+            assert_eq!(&status.course, course);
+            assert!(status.time_stamp > 0);
+        }
     }
 
     #[test]

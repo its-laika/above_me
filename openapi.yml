@@ -40,8 +40,8 @@ paths:
         - aircaft
       summary: Get information about aircraft for a given position
       description: |-
-       Returns information for all aircraft that appeared in the last 5 minutes
-       in the range of given _latitude_ ± _range_ and _longitude_ ± _range_.
+        Returns information for all aircraft that appeared in the last 5 minutes
+        in the range of given _latitude_ ± _range_ and _longitude_ ± _range_.
 
       operationId: getAircraftForPosition
       parameters:
@@ -69,20 +69,19 @@ paths:
           schema:
             type: number
             format: float
-
       responses:
-        '200':
+        "200":
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Information'
-        '400':
+                $ref: "#/components/schemas/Information"
+        "400":
           description: Invalid parameters given
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     Information:
@@ -111,57 +110,58 @@ components:
         states:
           type: array
           items:
-            $ref: '#/components/schemas/Status'
+            $ref: "#/components/schemas/Status"
           description: The aircraft states that match the given parameters
     Status:
-      required:
-        - aircraft
-        - position
-        - speed
-        - vertical_speed
-        - altitude
-        - turn_rate
-        - course
-        - time_stamp
       type: object
       properties:
         aircraft:
-          $ref: '#/components/schemas/Aircraft'
+          $ref: "#/components/schemas/Aircraft"
         position:
-          $ref: '#/components/schemas/Position'
+          $ref: "#/components/schemas/Position"
         speed:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int32
           examples: [132]
           description: Speed of aircraft in _km/h_
         vertical_speed:
-          type: number
+          type:
+            - number
+            - "null"
           format: float
           examples: [0.32]
           description: Vertical speed of aircraft in _m/sec_
         altitude:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int32
           examples: [3431]
           description: Altitude of aircraft in _m_
         turn_rate:
-          type: number
+          type:
+            - number
+            - "null"
           format: float
           examples: [3.5]
           descripion: Turn rate of aircaft in _turns/min_
         course:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int32
           examples: [152]
           description: Course of aircraft
         time_stamp:
-          type: integer
+          type:
+            - integer
+            - "null"
           format: int64
           examples: [670932000]
-          description: Unix timestamp of message
+          description: Unix timestamp of latest aircraft status
     Aircraft:
-      required:
-        - id
       type: object
       properties:
         call_sign:
@@ -177,9 +177,6 @@ components:
           examples: ["ASK-21"]
           description: Airplane model
     Position:
-      required:
-        - latitude
-        - longitude
       type: object
       properties:
         latitude:
