@@ -13,7 +13,7 @@ function submit(event) {
         return;
     }
 
-    const url = location + `r/${latitude}/${longitude}/${range}`;
+    const url = window.location.origin + `/r/${latitude}/${longitude}/${range}`;
 
     fetch(url)
         .then(response => response.json())
@@ -70,5 +70,21 @@ function onClickWhatsAboveMe() {
             document.querySelector('#loading-position').style.display = 'none';
         });
 }
+
+(function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    for (let param of ['longitude', 'latitude', 'range']) {
+        if (!urlParams.has(param)) {
+            continue;
+        }
+
+        let value = parseFloat(urlParams.get(param));
+        if (!value || isNaN(value)) {
+            continue;
+        }
+
+        document.querySelector(`#${param}`).value = value;
+    }
+})();
 
 document.querySelector('form').addEventListener('submit', submit);
