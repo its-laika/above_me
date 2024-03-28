@@ -1,12 +1,12 @@
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, MutexGuard},
+};
+
 use serde::Serialize;
 
 use crate::{
     aprs::Status, haversine::calculate_distance, position::Position, time::get_current_timestamp,
-};
-
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
 };
 
 const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */

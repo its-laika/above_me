@@ -62,7 +62,7 @@ mod tests {
             longitude: 2.3376,
         };
 
-        /* This value matches online calculators so I assume it's correct */
+        /* This value matches online calculators, so I assume it's correct */
         assert_eq!(calculate_distance(&pos1, &pos2), 3.1636212);
         assert_eq!(calculate_distance(&pos2, &pos1), 3.1636212);
     }

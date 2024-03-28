@@ -1,5 +1,6 @@
-use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
+
+use serde::Serialize;
 
 /// Representation of a position
 #[derive(Clone, Serialize)]

@@ -1,5 +1,6 @@
-use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
+
+use serde::Serialize;
 
 use crate::{ogn::Aircraft, position::Position};
 
@@ -32,7 +33,7 @@ impl Display for Status {
     Aircraft: {},
     Position: {},
     Speed: {:?},
-    Vertial speed: {:?},
+    Vertical speed: {:?},
     Altitude: {:?},
     Turn rate: {:?},
     Course: {:?},

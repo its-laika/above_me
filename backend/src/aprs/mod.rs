@@ -1,4 +1,4 @@
-pub use client::{init, Config};
+pub use client::{Config, init};
 pub use status::Status;
 
 mod client;

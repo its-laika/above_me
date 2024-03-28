@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use log::debug;
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
-use std::collections::HashMap;
 
 use crate::{
     ogn::{Aircraft, AircraftId},
@@ -16,10 +17,10 @@ use super::status::Status;
 /// # Notes
 ///
 /// At the part of "idXXYYYYYY", "XX" must not be 40 or higher!
-/// This is due to the fact that this 2-digit hex number contains the tracking-information as _binary_ in the
-/// form of _0bSTxxxxxx_ and if _S_ = _1_ or _T_ = _1_, we should discard the message.
-/// So all "allowed" values are in the range of _0b00000000_ - _0b00111111_, or in hex: _0x00_ - _0x3f_,
-/// therefore we can discard all messages not in this range.
+/// This is due to the fact that this 2-digit hex number contains the tracking-information as
+/// _binary_ in the form of _0bSTxxxxxx_ and if _S_ = _1_ or _T_ = _1_, we should discard the
+/// message. So all "allowed" values are in the range of _0b00000000_ - _0b00111111_, or in hex:
+/// _0x00_ - _0x3f_, therefore we can discard all messages not in this range.
 ///
 /// see: [dbursem/ogn-client-php](https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87)
 const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])[/\\]?.(?<longitude>[0-9.]+[WE]).(?:(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+))?.*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+)(?: (?<verticalSpeed>[-+0-9]+)fpm)?(?: (?<turnRate>[-+.0-9]+)rot)?";
@@ -77,7 +78,7 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
     let aircraft = if let Some(a) = aircraft.get(id) {
         a.clone()
     } else {
-        debug!("Unknown aircaft id '{id}'");
+        debug!("Unknown aircraft id '{id}'");
 
         Aircraft {
             id: String::from(id),
@@ -111,7 +112,7 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
 ///
 /// * `captures` - The regex `Captures` to look up
 /// * `name` - Name of the captured value that should be converted
-/// * `conversion_factor` - The factor that the value should be multipled with
+/// * `conversion_factor` - The factor that the value should be multiplied with
 ///
 /// # Examples
 ///
@@ -136,7 +137,7 @@ fn capture_as_f32(captures: &Captures, name: &str, conversion_factor: f32) -> Op
 ///
 /// * `captures` - The regex `Captures` to look up
 /// * `name` - Name of the captured value that should be converted
-/// * `conversion_factor` - The factor that the value should be multipled with
+/// * `conversion_factor` - The factor that the value should be multiplied with
 ///
 /// # Examples
 ///
@@ -150,7 +151,7 @@ fn capture_as_f32(captures: &Captures, name: &str, conversion_factor: f32) -> Op
 /// ```
 /// # Notes
 ///
-/// Returns `None` if _value_ * `conversion_factor` would under- / overlow `u16` ranges
+/// Returns `None` if _value_ * `conversion_factor` would under- / overflow `u16` ranges
 fn capture_as_u16(captures: &Captures, name: &str, conversion_factor: f32) -> Option<u16> {
     let string_value = captures.name(name)?.as_str();
     let value = string_value.parse::<u16>().ok()?;
@@ -201,8 +202,8 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
 
     let degrees = f32::floor(aprs_value / 1_0000.0); // Separating   "dd" from "ddmmmm"
     let minutes = f32::floor(aprs_value % 1_0000.0) // Separating "mmmm" from "ddmmmm"
-                      / 60.0 // because 60 minutes = 1 degree
-                      / 100.0; // because of the removed decimal separator
+        / 60.0 // because 60 minutes = 1 degree
+        / 100.0; // because of the removed decimal separator
 
     if (f64::from(degrees) + f64::from(minutes)) > f64::from(f32::MAX) {
         /* Don't think that's possible but just to be sure */
@@ -246,7 +247,7 @@ mod tests {
                 Some(86)
             ),
             (
-                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N\\00102.04W'086/007/A=000607 id0AAB1234 5.5dB 3e -4.3kHz", 
+                "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N\\00102.04W'086/007/A=000607 id0AAB1234 5.5dB 3e -4.3kHz",
                 valid_aircraft.id.as_str(),
                 51.188667,
                 Some(12),
@@ -265,7 +266,7 @@ mod tests {
                 None,
                 None
             ),
-             (
+            (
                 "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W' id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz",
                 valid_aircraft.id.as_str(),
                 51.188667,
@@ -298,7 +299,7 @@ mod tests {
         ];
 
         for (line, aircraft_id, latitude, speed, vertical_speed, altitude, turn_rate, course) in
-            data_set
+        data_set
         {
             let result = convert(line, &mapping);
             assert!(result.is_some());

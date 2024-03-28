@@ -1,6 +1,6 @@
 use axum::{extract::State, Json};
 
-use crate::api::{state::Overview, App};
+use crate::api::{App, state::Overview};
 
 /// Handler for route _/status_
 ///

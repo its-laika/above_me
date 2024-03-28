@@ -1,8 +1,10 @@
+use std::io::Error;
+
+use axum::{Router, routing::get};
+use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
+
 use super::routes::{aircraft, overview};
 use super::state::App;
-use axum::{routing::get, Router};
-use std::io::Error;
-use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 
 /// Initializes a tcp server that serves our API
 ///
@@ -10,7 +12,8 @@ use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 ///
 /// * `address` - The address that the server will bind to
 /// * `app` - The `App` that the API will use for its data
-/// * `shutdown_rx` - A oneshot `Receiver<()>` that will shutdown the server gracefully when a message is received.
+/// * `shutdown_rx` - A oneshot `Receiver<()>` that will shut down the server gracefully when a
+///    message is received.
 ///
 /// # Returns
 ///

@@ -1,3 +1,17 @@
+use std::{
+    collections::HashMap,
+    io::{Error, ErrorKind},
+};
+
+use log::{debug, error};
+use serde::Deserialize;
+use tokio::{
+    io::AsyncWriteExt,
+    net::{TcpStream, ToSocketAddrs},
+    sync::mpsc::Sender,
+};
+use tokio::io::{AsyncBufReadExt, BufReader, BufWriter};
+
 use crate::{
     ogn::{Aircraft, AircraftId},
     time::get_current_timestamp,
@@ -5,18 +19,6 @@ use crate::{
 
 use super::conversion::convert;
 use super::status::Status;
-use log::{debug, error};
-use serde::Deserialize;
-use std::{
-    collections::HashMap,
-    io::{Error, ErrorKind},
-};
-use tokio::io::{AsyncBufReadExt, BufReader, BufWriter};
-use tokio::{
-    io::AsyncWriteExt,
-    net::{TcpStream, ToSocketAddrs},
-    sync::mpsc::Sender,
-};
 
 /// Messages starting with a hashtag are comments (e.g. keep alive messages)
 const IDENTIFIER_COMMENT: char = '#';
@@ -42,8 +44,8 @@ pub struct Config<A: ToSocketAddrs> {
     pub filter: Option<String>,
 }
 
-/// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and transmits incoming aircraft states.
-/// Sends incoming APRS states via `status_tx`.
+/// Initiates a `TcpClient` that connects to an APRS server based on given `ClientConfig` and
+/// transmits incoming aircraft states. Sends incoming APRS states via `status_tx`.
 ///
 /// # Arguments
 ///
@@ -126,7 +128,7 @@ pub async fn init<A: ToSocketAddrs>(
         debug!("Got line: '{line}'");
 
         /* APRS server sends a keep alive ever 20 - 30 seconds. As we don't want to worry about
-         * *another* async interval shit, we just check if the last keep alive was 10 - 11 mins
+         * *another* async interval shit, we just check if the last keep alive was 10 - 11 minutes
          * ago and, if so, send a new one. We won't run into a timeout if we're 30 seconds late,
          * so KISS FTW. */
         let current_timestamp = get_current_timestamp();

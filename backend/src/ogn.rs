@@ -1,5 +1,6 @@
-use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
+
+use serde::Serialize;
 
 /// Representing information about an aircraft.
 #[derive(Clone, Serialize)]
@@ -7,7 +8,7 @@ pub struct Aircraft {
     /// DDB id of the aircraft
     #[serde(skip_serializing)]
     pub id: String,
-    /// Callsign, e.g. "G1"
+    /// Call sign, e.g. "G1"
     pub call_sign: String,
     /// Registration, e.g. "D-6507"
     pub registration: String,
@@ -25,7 +26,7 @@ impl Display for Aircraft {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "[ Id: {}, Callsign: {}, Registration: {}, Type: {}, Visible: {} ]",
+            "[ Id: {}, Call sign: {}, Registration: {}, Type: {}, Visible: {} ]",
             self.id, self.call_sign, self.registration, self.model, self.visible
         )
     }

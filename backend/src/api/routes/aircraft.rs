@@ -1,9 +1,10 @@
-use crate::{api::App, aprs::Status, position::Position};
 use axum::{
     extract::{Path, State},
     Json,
 };
 use serde::Serialize;
+
+use crate::{api::App, aprs::Status, position::Position};
 
 /// Handler for route _/r/:latitude/:longitude/:range_
 ///

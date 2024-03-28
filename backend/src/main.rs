@@ -1,9 +1,10 @@
-use ddb::fetch_aircraft;
 use log::{error, info, warn};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinSet,
 };
+
+use ddb::fetch_aircraft;
 
 mod api;
 mod aprs;

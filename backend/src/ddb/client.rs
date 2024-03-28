@@ -2,9 +2,10 @@ use std::collections::HashMap;
 
 use reqwest::IntoUrl;
 
+use crate::ogn::{Aircraft, AircraftId};
+
 use super::conversion::convert;
 use super::error;
-use crate::ogn::{Aircraft, AircraftId};
 
 const LINE_BREAK: char = '\n';
 
