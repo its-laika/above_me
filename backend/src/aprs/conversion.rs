@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 
 use crate::{
-    ogn::{Aircraft, AircraftId},
+    ogn::{Aircraft, AircraftId, AircraftType},
     position::Position,
     time::get_current_timestamp,
 };
@@ -23,7 +23,7 @@ use super::status::Status;
 /// _0x00_ - _0x3f_, therefore we can discard all messages not in this range.
 ///
 /// see: [dbursem/ogn-client-php](https://github.com/dbursem/ogn-client-php/blob/master/lib/OGNClient.php#L87)
-const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])[/\\]?.(?<longitude>[0-9.]+[WE]).(?:(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+))?.*?id[0-3]{1}[A-Fa-f0-9]{1}(?<id>[A-Za-z0-9]+)(?: (?<verticalSpeed>[-+0-9]+)fpm)?(?: (?<turnRate>[-+.0-9]+)rot)?";
+const LINE_PATTERN: &str = r"h(?<latitude>[0-9.]+[NS])[/\\]?.(?<longitude>[0-9.]+[WE]).(?:(?<course>\d{3})/(?<speed>\d{3})/A=(?<altitude>\d+))?.*?id(?<type>[0-3]{1}[A-Fa-f0-9]{1})(?<id>[A-Za-z0-9]+)(?: (?<verticalSpeed>[-+0-9]+)fpm)?(?: (?<turnRate>[-+.0-9]+)rot)?";
 
 /// Factor to convert knots to km/h
 const FACTOR_KNOTS_TO_KM_H: f32 = 1.852;
@@ -76,15 +76,27 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
     let id = captures.name("id")?.as_str();
 
     let aircraft = if let Some(a) = aircraft.get(id) {
-        a.clone()
+        if a.has_model() {
+            a.clone()
+        } else {
+            let model = get_aircraft_type_by_capture(&captures, "type")
+                .map(|t| String::from(t.get_name()))
+                .unwrap_or_default();
+
+            a.with_model(model)
+        }
     } else {
         debug!("Unknown aircraft id '{id}'");
+
+        let model = get_aircraft_type_by_capture(&captures, "type")
+            .map(|t| String::from(t.get_name()))
+            .unwrap_or_default();
 
         Aircraft {
             id: String::from(id),
             call_sign: String::from(UNKNOWN),
             registration: String::from(UNKNOWN),
-            model: String::from(UNKNOWN),
+            model,
             visible: true,
         }
     };
@@ -219,9 +231,91 @@ fn capture_as_coordinate_value(captures: &Captures, name: &str) -> Option<f32> {
     }
 }
 
+/// Tries extracting the aircraft type from a `Capture` of the first encoded id field
+///
+/// # Arguments
+///
+/// * `captures` - The regex `Captures` to look up
+/// * `name` - Name of the captured value that should be converted
+///
+/// # Examples
+///
+/// ```
+/// let capture = Regex::new(r"(?<value>.*)")
+///     .unwrap()
+///     .captures("2D")
+///     .unwrap();
+///
+/// let aircraft_type = et_aircraft_type_by_capture(&capture, "value");
+///
+/// assert!(aircraft_typ.is_some());
+/// assert!(aircraft_type.unwrap() == AircraftType::Balloon);
+/// ```
+///
+/// # References
+///
+/// - [OGN Wiki](http://wiki.glidernet.org/wiki:ogn-flavoured-aprs#toc2)
+fn get_aircraft_type_by_capture(captures: &Captures, name: &str) -> Option<AircraftType> {
+    let string_value = captures.name(name)?.as_str();
+    let value = u8::from_str_radix(string_value, 16).ok()?;
+
+    /* Aircraft id field is built like this: "id" + "XX" + "YYYYYY" where the last part is the
+     * aircraft identifier (that matches DDB). "XX" is a 2-digit hex value built like this:
+     * 0bSTttttaa where "S" indicates stealth mode (should *NEVER* be sent over OGN), "T" is
+     * no-tracking mode (should *NEVER* be parsed by above_me), "tttt" is the aircraft type
+     * and "aa" is the address type. As we only need "tttt", we shift the whole number two
+     * digits to the left and just care for the lowest four bytes. */
+
+    if value & 0b1000_0000 > 0 {
+        /* This should *NEVER* happen! */
+        panic!("Line to be parsed has stealth mode active");
+    }
+
+    if value & 0b0100_0000 > 0 {
+        /* This should *NEVER* happen! */
+        panic!("Line to be parsed has no-tracking mode active");
+    }
+
+    let aircraft_type_value = (value >> 2) & 0b1111;
+    AircraftType::from_aprs_u8(aircraft_type_value)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn get_type_works() {
+        let regex = Regex::new(r"(?<value>.*)").unwrap();
+
+        assert!(
+            get_aircraft_type_by_capture(&regex.captures("2D").unwrap(), "value")
+                .is_some_and(|t| t == AircraftType::Balloon)
+        );
+
+        assert!(
+            get_aircraft_type_by_capture(&regex.captures("07").unwrap(), "value")
+                .is_some_and(|t| t == AircraftType::Glider)
+        );
+
+        assert!(get_aircraft_type_by_capture(&regex.captures("00").unwrap(), "XXX").is_none());
+        assert!(get_aircraft_type_by_capture(&regex.captures("ZZZZ").unwrap(), "value").is_none());
+        assert!(get_aircraft_type_by_capture(&regex.captures("00").unwrap(), "value").is_none());
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_type_panics_on_stealth_mode() {
+        let regex = Regex::new(r"(?<value>.*)").unwrap();
+        get_aircraft_type_by_capture(&regex.captures("80").unwrap(), "value");
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_type_panics_on_no_tracking_mode() {
+        let regex = Regex::new(r"(?<value>.*)").unwrap();
+        get_aircraft_type_by_capture(&regex.captures("40").unwrap(), "value");
+    }
 
     #[test]
     fn convert_works() {
@@ -299,7 +393,7 @@ mod tests {
         ];
 
         for (line, aircraft_id, latitude, speed, vertical_speed, altitude, turn_rate, course) in
-        data_set
+            data_set
         {
             let result = convert(line, &mapping);
             assert!(result.is_some());
@@ -329,8 +423,22 @@ mod tests {
         assert_eq!(status.aircraft.id, "AB1234");
         assert_eq!(status.aircraft.call_sign, "");
         assert_eq!(status.aircraft.registration, "");
-        assert_eq!(status.aircraft.model, "");
+        assert_eq!(status.aircraft.model, "Tow plane");
         assert!(status.aircraft.visible);
+    }
+
+    #[test]
+    fn convert_ignores_stealth_mode() {
+        let mapping = HashMap::new();
+        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id8AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+        assert!(convert(line, &mapping).is_none());
+    }
+
+    #[test]
+    fn convert_ignores_no_tracking_mode() {
+        let mapping = HashMap::new();
+        let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id4AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
+        assert!(convert(line, &mapping).is_none());
     }
 
     #[test]

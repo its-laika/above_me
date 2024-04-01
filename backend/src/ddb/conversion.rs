@@ -5,6 +5,7 @@ const FIELD_SEPARATOR: char = ',';
 const IDENTIFIER_COMMENT: char = '#';
 const FIELD_ENCLOSURE: char = '\'';
 const EMPTY: &str = "";
+const TYPE_UNKNOWN: &str = "Unknown";
 
 const INDEX_ID: usize = 1;
 const INDEX_TYPE: usize = 2;
@@ -48,8 +49,13 @@ pub fn convert(line: &str) -> Option<Aircraft> {
 
     let call_sign = fields[INDEX_CALL_SIGN].to_string();
     let registration = fields[INDEX_REGISTRATION].to_string();
-    let model = fields[INDEX_TYPE].to_string();
     let visible = fields[INDEX_IDENTIFIED] == VALUE_YES && fields[INDEX_TRACKED] == VALUE_YES;
+
+    let model = if fields[INDEX_TYPE] != TYPE_UNKNOWN {
+        fields[INDEX_TYPE].to_string()
+    } else {
+        String::new()
+    };
 
     Some(Aircraft {
         id,
