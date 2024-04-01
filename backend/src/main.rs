@@ -1,4 +1,4 @@
-use log::{error, info, warn};
+use log::{error, info};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinSet,
@@ -61,10 +61,14 @@ async fn main() {
     join_set.spawn(async move {
         info!("Initializing APRS client...");
 
-        if let Err(e) = aprs::init(&config.aprs, status_tx, &aircraft).await {
-            error!("Client stopped with error: {e}");
-        } else {
-            warn!("Client disconnected");
+        loop {
+            if let Err(e) = aprs::init(&config.aprs, &status_tx, &aircraft).await {
+                error!("Client stopped with error: {e}");
+                break;
+            } else {
+                /* Server may disconnect us at some point. Just reconnect and carry on. */
+                info!("Client disconnected. Reconnecting...");
+            }
         }
 
         shutdown_tx.send(()).unwrap();

@@ -5,12 +5,12 @@ use std::{
 
 use log::{debug, error};
 use serde::Deserialize;
+use tokio::io::{AsyncBufReadExt, BufReader, BufWriter};
 use tokio::{
     io::AsyncWriteExt,
     net::{TcpStream, ToSocketAddrs},
     sync::mpsc::Sender,
 };
-use tokio::io::{AsyncBufReadExt, BufReader, BufWriter};
 
 use crate::{
     ogn::{Aircraft, AircraftId},
@@ -69,7 +69,7 @@ pub struct Config<A: ToSocketAddrs> {
 /// let aircraft: HashMap<AircraftId, Aircraft> = HashMap::new();
 ///
 /// spawn(async move {
-///     aprs::init(&config, status_tx, &aircraft)
+///     aprs::init(&config, &status_tx, &aircraft)
 ///         .await
 ///         .expect("Client failed");
 /// });
@@ -80,7 +80,7 @@ pub struct Config<A: ToSocketAddrs> {
 /// ```
 pub async fn init<A: ToSocketAddrs>(
     config: &Config<A>,
-    status_tx: Sender<Status>,
+    status_tx: &Sender<Status>,
     aircraft: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
