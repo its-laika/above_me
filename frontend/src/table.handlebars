@@ -20,7 +20,11 @@
                 {{#if aircraft.call_sign}}({{aircraft.call_sign}}){{/if}}
                 <br>{{aircraft.model}}
                 {{/if}}
-                {{#unless aircraft.registration}}unknown{{/unless}}
+                {{#unless aircraft.registration}}
+                <i>unknown</i>
+                {{#if aircraft.model}}<br>{{/if}}
+                {{aircraft.model}}
+                {{/unless}}
             </td>
             <td class="variable-value">
                 {{#if altitude}}{{altitude}} <i>m</i>{{/if}}

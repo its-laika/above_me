@@ -234,9 +234,9 @@ mod tests {
         Status {
             aircraft: Aircraft {
                 id: aircraft_id,
-                call_sign: String::from("G1"),
-                registration: String::from("D-6507"),
-                model: String::from("ASK-21"),
+                call_sign: None,
+                registration: None,
+                model: None,
                 visible: true,
             },
             position,

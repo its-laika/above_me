@@ -33,8 +33,6 @@ const FACTOR_FT_TO_M: f32 = 0.3048;
 const FACTOR_FT_MIN_TO_M_SEC: f32 = 0.00508;
 /// Factor to convert "turns/2min" to "turns/min"
 const FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN: f32 = 0.5;
-/// Placeholder for unknown aicraft values
-const UNKNOWN: &str = "";
 
 static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap());
 
@@ -51,7 +49,7 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 /// use ogn::{Aircraft, AircraftId}
 /// use std::collections::HashMap;
 ///
-/// let valid_aircraft = Aircraft {
+/// let aircraft = Aircraft {
 ///     id: String::from("AB1234"),
 ///     call_sign: String::from("G1"),
 ///     registration: String::from("D-6507"),
@@ -59,13 +57,13 @@ static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap())
 ///     visible: true,
 /// };
 ///
-/// let mapping = HashMap::from([(valid_aircraft.id.clone(), valid_aircraft.clone())]);
+/// let mapping = HashMap::from([(aircraft.id.clone(), aircraft.clone())]);
 ///
 /// let line = "FLRDDE626>APRS,qAS,EGHL:/074548h5111.32N/00102.04W'086/007/A=000607 id0AAB1234 -019fpm +0.0rot 5.5dB 3e -4.3kHz";
 ///
 /// let result = convert(line, &mapping);
 /// assert!(result.is_some());
-/// assert_eq!(result.unwrap().aircraft.id, valid_aircraft.id);
+/// assert_eq!(result.unwrap().aircraft.id, aircraft.id);
 /// ```
 pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<Status> {
     let Some(captures) = LINE_REGEX.captures(line) else {
@@ -76,12 +74,12 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
     let id = captures.name("id")?.as_str();
 
     let aircraft = if let Some(a) = aircraft.get(id) {
-        if a.has_model() {
+        if a.model.is_some() {
             a.clone()
         } else {
             let model = get_aircraft_type_by_capture(&captures, "type")
-                .map(|t| String::from(t.get_name()))
-                .unwrap_or_default();
+                .map(|t| t.get_name())
+                .map(String::from);
 
             a.with_model(model)
         }
@@ -89,13 +87,13 @@ pub fn convert(line: &str, aircraft: &HashMap<AircraftId, Aircraft>) -> Option<S
         debug!("Unknown aircraft id '{id}'");
 
         let model = get_aircraft_type_by_capture(&captures, "type")
-            .map(|t| String::from(t.get_name()))
-            .unwrap_or_default();
+            .map(|t| t.get_name())
+            .map(String::from);
 
         Aircraft {
             id: String::from(id),
-            call_sign: String::from(UNKNOWN),
-            registration: String::from(UNKNOWN),
+            call_sign: None,
+            registration: None,
             model,
             visible: true,
         }
@@ -321,9 +319,9 @@ mod tests {
     fn convert_works() {
         let valid_aircraft = Aircraft {
             id: String::from("AB1234"),
-            call_sign: String::from("G1"),
-            registration: String::from("D-6507"),
-            model: String::from("ASK-21"),
+            call_sign: None,
+            registration: None,
+            model: None,
             visible: true,
         };
 
@@ -421,9 +419,9 @@ mod tests {
 
         let status = result.unwrap();
         assert_eq!(status.aircraft.id, "AB1234");
-        assert_eq!(status.aircraft.call_sign, "");
-        assert_eq!(status.aircraft.registration, "");
-        assert_eq!(status.aircraft.model, "Tow plane");
+        assert!(status.aircraft.call_sign.is_none());
+        assert!(status.aircraft.registration.is_none());
+        assert!(status.aircraft.model.is_some_and(|v| v == "Tow plane"));
         assert!(status.aircraft.visible);
     }
 

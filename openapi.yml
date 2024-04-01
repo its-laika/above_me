@@ -154,9 +154,7 @@ components:
           examples: [152]
           description: Course of aircraft
         time_stamp:
-          type:
-            - integer
-            - "null"
+          type: integer
           format: int64
           examples: [670932000]
           description: Unix timestamp of latest aircraft status
@@ -164,15 +162,21 @@ components:
       type: object
       properties:
         call_sign:
-          type: string
+          type:
+            - string
+            - "null"
           examples: ["G1"]
           description: Call sign of aircraft
         registration:
-          type: string
+          type:
+            - string
+            - "null"
           examples: ["D-6507"]
           description: Registration of aircraft
         model:
-          type: string
+          type:
+            - string
+            - "null"
           examples: ["ASK-21"]
           description: Airplane model
     Position:

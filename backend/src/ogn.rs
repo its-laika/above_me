@@ -9,45 +9,17 @@ pub struct Aircraft {
     #[serde(skip_serializing)]
     pub id: String,
     /// Call sign, e.g. "G1"
-    pub call_sign: String,
+    pub call_sign: Option<String>,
     /// Registration, e.g. "D-6507"
-    pub registration: String,
+    pub registration: Option<String>,
     /// Aircraft model type, e.g. "ASK-21"
-    pub model: String,
+    pub model: Option<String>,
     /// Should the aircraft be identified and tracked?
     #[serde(skip_serializing)]
     pub visible: bool,
 }
 
 impl Aircraft {
-    /// Returns whether `Aircraft` has a defined model
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let with_model = Aircraft {
-    ///     id: String::from("AB1234"),
-    ///     call_sign: String::from("G1"),
-    ///     registration: String::from("D-6507"),
-    ///     model: String::from("ASK-21"),
-    ///     visible: true,
-    /// };
-    ///
-    /// let without_model = Aircraft {
-    ///     id: String::from("AB1234"),
-    ///     call_sign: String::from("G1"),
-    ///     registration: String::from("D-6507"),
-    ///     model: String::from(""),
-    ///     visible: true,
-    /// };
-    ///
-    /// assert!(with_model.has_model());
-    /// assert!(!without_model.has_model());
-    /// ```
-    pub fn has_model(&self) -> bool {
-        !self.model.is_empty()
-    }
-
     /// Clones `Aircraft` with a given `model` name
     ///
     /// # Arguments
@@ -65,12 +37,12 @@ impl Aircraft {
     ///     visible: true,
     /// };
     ///
-    /// let aircraft_with_model = aircraft.with_model(String::new("ASK-21"));
+    ///  let aircraft_with_model = aircraft.with_model(Some(String::new("ASK-21")));
     ///
-    /// assert!(aircraft_with_model.has_model());
-    /// assert_eq!(aircraft_with_model.model, "ASK-21");
+    /// assert!(aircraft_with_model.model.is_some());
+    /// assert_eq!(aircraft_with_model.model.unwrap(), "ASK-21");
     /// ```
-    pub fn with_model(&self, model: String) -> Aircraft {
+    pub fn with_model(&self, model: Option<String>) -> Aircraft {
         Aircraft {
             id: self.id.clone(),
             call_sign: self.call_sign.clone(),
@@ -167,7 +139,7 @@ impl Display for Aircraft {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "[ Id: {}, Call sign: {}, Registration: {}, Type: {}, Visible: {} ]",
+            "[ Id: {}, Call sign: {:?}, Registration: {:?}, Type: {:?}, Visible: {} ]",
             self.id, self.call_sign, self.registration, self.model, self.visible
         )
     }

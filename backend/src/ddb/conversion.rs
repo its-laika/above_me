@@ -42,28 +42,27 @@ pub fn convert(line: &str) -> Option<Aircraft> {
         return None;
     }
 
-    let id = fields[INDEX_ID].to_string();
-    if id.is_empty() {
-        return None;
-    }
-
-    let call_sign = fields[INDEX_CALL_SIGN].to_string();
-    let registration = fields[INDEX_REGISTRATION].to_string();
-    let visible = fields[INDEX_IDENTIFIED] == VALUE_YES && fields[INDEX_TRACKED] == VALUE_YES;
-
     let model = if fields[INDEX_TYPE] != TYPE_UNKNOWN {
-        fields[INDEX_TYPE].to_string()
+        get_as_option(fields[INDEX_TYPE])
     } else {
-        String::new()
+        None
     };
 
     Some(Aircraft {
-        id,
-        call_sign,
-        registration,
+        id: get_as_option(fields[INDEX_ID])?,
+        call_sign: get_as_option(fields[INDEX_CALL_SIGN]),
+        registration: get_as_option(fields[INDEX_REGISTRATION]),
         model,
-        visible,
+        visible: fields[INDEX_IDENTIFIED] == VALUE_YES && fields[INDEX_TRACKED] == VALUE_YES,
     })
+}
+
+fn get_as_option(value: &str) -> Option<String> {
+    if !value.is_empty() {
+        Some(String::from(value))
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -79,9 +78,24 @@ mod tests {
 
         let aircraft = result.unwrap();
         assert_eq!(aircraft.id, "AB1234");
-        assert_eq!(aircraft.call_sign, "G1");
-        assert_eq!(aircraft.registration, "D-6507");
-        assert_eq!(aircraft.model, "ASK-21");
+        assert!(aircraft.call_sign.is_some_and(|v| v == "G1"));
+        assert!(aircraft.registration.is_some_and(|v| v == "D-6507"));
+        assert!(aircraft.model.is_some_and(|v| v == "ASK-21"));
+        assert!(aircraft.visible);
+    }
+
+    #[test]
+    fn handles_empty_values_correctly() {
+        let line = "'O','AB1234','Unknown','','G1','Y','Y'";
+
+        let result = convert(line);
+        assert!(result.is_some());
+
+        let aircraft = result.unwrap();
+        assert_eq!(aircraft.id, "AB1234");
+        assert!(aircraft.call_sign.is_some_and(|v| v == "G1"));
+        assert!(aircraft.registration.is_none());
+        assert!(aircraft.model.is_none());
         assert!(aircraft.visible);
     }
 
