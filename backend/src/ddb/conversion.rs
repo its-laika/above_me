@@ -57,6 +57,18 @@ pub fn convert(line: &str) -> Option<Aircraft> {
     })
 }
 
+/// Returns `Some(String)`, if `value` is not empty.
+/// Otherwise returns `None`
+///
+/// # Arguments
+///
+/// * `value` - Value that may be wrapped
+///
+/// # Examples
+/// ```
+/// assert!(get_as_option("").is_none());
+/// assert!(get_as_option("Value").is_some_and(|v|v == "Value"));
+/// ```
 fn get_as_option(value: &str) -> Option<String> {
     if !value.is_empty() {
         Some(String::from(value))
