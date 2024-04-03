@@ -6,7 +6,9 @@ use std::{
 use serde::Serialize;
 
 use crate::{
-    aprs::Status, haversine::calculate_distance, position::Position, time::get_current_timestamp,
+    aprs::Status,
+    position::{calculate_distance, Position},
+    time::get_current_timestamp,
 };
 
 const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */

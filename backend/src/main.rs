@@ -4,13 +4,10 @@ use tokio::{
     task::JoinSet,
 };
 
-use ddb::fetch_aircraft;
+use crate::ogn::{aprs, ddb::fetch_aircraft};
 
 mod api;
-mod aprs;
 mod config;
-mod ddb;
-mod haversine;
 mod ogn;
 mod position;
 mod time;
