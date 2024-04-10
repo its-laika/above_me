@@ -1,6 +1,7 @@
 use std::io::Error;
 
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
+use log::info;
 use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
 
 use super::routes::{aircraft, overview};
@@ -53,6 +54,7 @@ pub async fn init<'a, A: ToSocketAddrs>(
     axum::serve(listener, app)
         .with_graceful_shutdown(async {
             shutdown_rx.await.ok();
+            info!("API received shutdown signal");
         })
         .await?;
 

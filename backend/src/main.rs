@@ -50,9 +50,12 @@ async fn main() {
 
     join_set.spawn(async move {
         info!("Initializing API...");
-        api::init(&config.bind_to, app, shutdown_rx)
-            .await
-            .expect("Could not start API server");
+
+        if let Err(e) = api::init(&config.bind_to, app, shutdown_rx).await {
+            error!("API stopped with error: {e}");
+        } else {
+            info!("API stopped");
+        }
     });
 
     join_set.spawn(async move {
@@ -72,9 +75,13 @@ async fn main() {
     });
 
     join_set.spawn(async move {
+        info!("Initializing updates from client to API...");
+
         while let Some(status) = status_rx.recv().await {
             app_update.push_status(status);
         }
+
+        info!("Updates from client to API stopped");
     });
 
     while (join_set.join_next().await).is_some() {}
