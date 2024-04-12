@@ -2,7 +2,7 @@
 <table class="table table-striped table-bordered table-dresponsive">
     <thead>
         <tr class="table-dark">
-            <th scope="col">Registration</th>
+            <th scope="col">Id</th>
             <th scope="col">Altitude</th>
             <th scope="col">Speed</th>
             <th scope="col">Course</th>
@@ -11,14 +11,20 @@
             <th scope="col">Position</th>
             <th scope="col">Last status</th>
         </tr>
-        <tr class="table-light units">
-            <th scope="col"></th>
-            <th scope="col"><i>m</i></th>
-            <th scope="col"><i>km/h</i></th>
-            <th scope="col"><i>°</i></th>
-            <th scope="col"><i>m/s</i></th>
-            <th scope="col"><i>turns/min</i></th>
-            <th scope="col"></th>
+        <tr class="table-primary units">
+            <th scope="col">
+                <b>Registration</b> (call sign)<br>
+                Model / type
+            </th>
+            <th scope="col">m</th>
+            <th scope="col">km/h</th>
+            <th scope="col">°</th>
+            <th scope="col">m/s</th>
+            <th scope="col">turns/min</th>
+            <th scope="col">
+                Link to map<br>
+                (<i><a href="https://live.glidernet.org/">live.glidernet.org</a></i>)
+            </th>
             <th scope="col"></th>
         </tr>
     </thead>
@@ -58,8 +64,11 @@
                 {{#unless turn_rate}}-{{/unless}}
             </td>
             <td class="variable-value">
-                {{position.latitude}}<br>
-                {{position.longitude}}
+                <a href="https://live.glidernet.org/#c={{position.latitude}},{{position.longitude}}&z=15&s=1"
+                    target="_blank">
+                    {{position.latitude_text}}<br>
+                    {{position.longitude_text}}
+                </a>
             </td>
             <td class="variable-value">
                 {{time_diff}}

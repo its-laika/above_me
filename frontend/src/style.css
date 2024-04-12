@@ -65,4 +65,9 @@ h3 {
 .units * {
     font-weight: normal;
     text-align: right;
+    font-style: italic;
+}
+
+.units * b {
+    font-weight: bold;
 }

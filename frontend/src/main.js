@@ -29,8 +29,9 @@ function submit(event) {
                 turn_rate: s.turn_rate?.toFixed(1),
                 course: s.course?.toFixed(0),
                 position: {
-                    longitude: formatCoordinateValue(s.position.longitude, 'E', 'W'),
-                    latitude: formatCoordinateValue(s.position.latitude, 'N', 'S'),
+                    ...s.position,
+                    longitude_text: formatCoordinateValue(s.position.longitude, 'E', 'W'),
+                    latitude_text: formatCoordinateValue(s.position.latitude, 'N', 'S'),
                 },
                 time_diff: formatTimeDiff(s.time_stamp, currentTimestamp)
             })
