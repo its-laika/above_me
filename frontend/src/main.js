@@ -15,6 +15,8 @@ function submit(event) {
 
     const url = window.location.origin + `/r/${latitude}/${longitude}/${range}`;
 
+    const currentTimestamp = Math.round(Date.now() / 1000);
+
     fetch(url)
         .then(response => response.json())
         .then(response => response.states)
@@ -29,7 +31,8 @@ function submit(event) {
                 position: {
                     longitude: formatCoordinateValue(s.position.longitude, 'E', 'W'),
                     latitude: formatCoordinateValue(s.position.latitude, 'N', 'S'),
-                }
+                },
+                time_diff: formatTimeDiff(s.time_stamp, currentTimestamp)
             })
             ))
         .then(states =>
@@ -52,6 +55,20 @@ function formatCoordinateValue(latitude, directionPositive, directionNegative) {
     const direction = latitude > 0 ? directionPositive : directionNegative;
 
     return `${degrees.toString().padStart(3, '0')}°${minutes.toFixed(0)}'${seconds.toFixed(0)}" ${direction}`
+}
+
+function formatTimeDiff(timestamp1, timestamp2) {
+    const diff = Math.abs(timestamp1 - timestamp2);
+
+    if (diff === 0) {
+        return 'now';
+    }
+
+    if (diff < 60) {
+        return `${diff} s`;
+    }
+
+    return `${Math.round(diff / 60)} min`;
 }
 
 function onClickWhatsAboveMe() {

@@ -61,3 +61,8 @@ h3 {
 .variable-value {
     text-align: right;
 }
+
+.units * {
+    font-weight: normal;
+    text-align: right;
+}
