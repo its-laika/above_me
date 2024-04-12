@@ -41,7 +41,6 @@ paths:
       description: |-
         Returns information for all aircraft that appeared in the last 5 minutes
         in the range of given _latitude_ ± _range_ and _longitude_ ± _range_.
-
       operationId: getAircraftForPosition
       parameters:
         - name: latitude
@@ -74,7 +73,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Information"
+                $ref: "#/components/schemas/AircraftStatusOverview"
         "400":
           description: Invalid parameters given
           content:
@@ -83,7 +82,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 components:
   schemas:
-    Information:
+    AircraftStatusOverview:
       required:
         - latitude
         - longitude
@@ -109,9 +108,10 @@ components:
         states:
           type: array
           items:
-            $ref: "#/components/schemas/Status"
-          description: The aircraft states that match the given parameters
-    Status:
+            $ref: "#/components/schemas/AircraftStatus"
+          description: |-
+            The aircraft states that match the given parameters sorted in ascending oder by distance to given position
+    AircraftStatus:
       type: object
       properties:
         aircraft:

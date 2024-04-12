@@ -49,21 +49,36 @@ impl App {
     ///
     /// # Arguments
     /// * `position` - The position that should be searched for
-    /// * `range` - Range around given `latitude` and `longitude` that should be searched for.
+    /// * `range` - Range around given `position` that should be searched for.
+    ///
+    /// # Returns
+    ///
+    /// Returns the states within `range` around given `position`, sorted in ascending oder by
+    /// distance to `position`.
     ///
     /// # Examples
     ///
     /// * test `state::get_filtered_states_checks_age`
     /// * test `state::get_filtered_states_checks_range`
+    /// * test `state::get_filtered_states_orders_correctly`
     pub fn get_filtered_states(&self, position: &Position, range: f32) -> Vec<Status> {
         let mut states = self.states.lock().expect("Mutex was poisoned");
 
         App::remove_outdated_states(&mut states);
 
-        states
+        let mut states_with_distance = states
             .values()
-            .filter(|&status| calculate_distance(position, &status.position) <= range)
-            .cloned()
+            .map(|status| (status, calculate_distance(position, &status.position)))
+            .filter(|&(_, distance)| distance <= range)
+            .collect::<Vec<(&Status, f32)>>();
+
+        states_with_distance.sort_unstable_by(|(_, distance1), (_, distance2)| {
+            distance1.partial_cmp(distance2).unwrap()
+        });
+
+        states_with_distance
+            .iter()
+            .map(|&(status, _)| status.clone())
             .collect::<Vec<Status>>()
     }
 
@@ -176,7 +191,7 @@ mod tests {
         sut.push_status(create_status(
             String::from("CD5678"),
             Position {
-                /* see haversine.rs -> 3.16 km */
+                /* see position.rs -> 3.16 km */
                 latitude: 48.86055,
                 longitude: 2.3376,
             },
@@ -197,6 +212,51 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert!(result.iter().any(|s| s.aircraft.id == "AB1234"));
         assert!(result.iter().any(|s| s.aircraft.id == "CD5678"));
+    }
+
+    #[test]
+    fn get_filtered_states_orders_correctly() {
+        let sut = App::create();
+        let current_timestamp = get_current_timestamp();
+
+        let position = Position {
+            latitude: 48.858222,
+            longitude: 2.2945,
+        };
+
+        sut.push_status(create_status(
+            String::from("CD5678"),
+            Position {
+                latitude: position.latitude + 0.0001,
+                longitude: position.longitude + 0.0001,
+            },
+            current_timestamp,
+        ));
+
+        sut.push_status(create_status(
+            String::from("AB1234"),
+            Position {
+                latitude: position.latitude,
+                longitude: position.longitude,
+            },
+            current_timestamp,
+        ));
+
+        sut.push_status(create_status(
+            String::from("EF9012"),
+            Position {
+                latitude: position.latitude + 0.0002,
+                longitude: position.longitude + 0.0002,
+            },
+            current_timestamp,
+        ));
+
+        let result = sut.get_filtered_states(&position, 4.0);
+
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].aircraft.id, "AB1234");
+        assert_eq!(result[1].aircraft.id, "CD5678");
+        assert_eq!(result[2].aircraft.id, "EF9012");
     }
 
     #[test]
