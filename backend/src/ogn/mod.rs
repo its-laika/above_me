@@ -17,5 +17,5 @@ pub mod ddb {
 }
 
 pub use aircraft::Aircraft;
-pub use aircraft::AircraftId;
-pub use aircraft::AircraftType;
+pub use aircraft::Id as AircraftId;
+pub use aircraft::Type as AircraftType;

@@ -65,10 +65,10 @@ async fn main() {
             if let Err(e) = aprs::init(&config.aprs, &status_tx, &aircraft).await {
                 error!("Client stopped with error: {e}");
                 break;
-            } else {
-                /* Server may disconnect us at some point. Just reconnect and carry on. */
-                info!("Client disconnected. Reconnecting...");
             }
+
+            /* Server may disconnect us at some point. Just reconnect and carry on. */
+            info!("Client disconnected. Reconnecting...");
         }
 
         shutdown_tx.send(()).unwrap();

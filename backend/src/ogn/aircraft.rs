@@ -55,7 +55,7 @@ impl Aircraft {
 
 /// Representation of generic aicraft types.
 #[derive(PartialEq)]
-pub enum AircraftType {
+pub enum Type {
     Glider,
     Tow,
     Helicopter,
@@ -71,7 +71,7 @@ pub enum AircraftType {
     Obstacle,
 }
 
-impl AircraftType {
+impl Type {
     /// Tries getting aircaft type for the APRS aircraft type value
     /// (encoded inside the aircraft id field).
     ///
@@ -81,14 +81,14 @@ impl AircraftType {
     ///
     /// # Examples
     /// ```
-    /// assert_eq!(AircraftType::from_aprs_u8(15), AircraftType::Obstacle);
-    /// assert_eq!(AircraftType::from_aprs_u8(0), None);
+    /// assert_eq!(Type::from_aprs_u8(15), Type::Obstacle);
+    /// assert_eq!(Type::from_aprs_u8(0), None);
     /// ```
     ///
     /// # References
     /// - `aprs::get_aircraft_type_by_capture`
     /// - [OGN Wiki](http://wiki.glidernet.org/wiki:ogn-flavoured-aprs#toc2)
-    pub fn from_aprs_u8(id: u8) -> Option<AircraftType> {
+    pub fn from_aprs_u8(id: u8) -> Option<Type> {
         match id {
             1 => Some(Self::Glider),
             2 => Some(Self::Tow),
@@ -107,11 +107,11 @@ impl AircraftType {
         }
     }
 
-    /// Returns the (english) name of an `AircraftType`
+    /// Returns the (english) name of a `Type`
     ///
     /// # Examples
     /// ```
-    /// assert_eq!(AircraftType::Glider.get_name(), "(Motor) Glider");
+    /// assert_eq!(Type::Glider.get_name(), "(Motor) Glider");
     /// ```
     pub fn get_name(&self) -> &'static str {
         match self {
@@ -133,7 +133,7 @@ impl AircraftType {
 }
 
 /// Alias for `String`, just for readability.
-pub type AircraftId = String;
+pub type Id = String;
 
 impl Display for Aircraft {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {

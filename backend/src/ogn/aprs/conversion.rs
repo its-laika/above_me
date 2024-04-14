@@ -264,15 +264,19 @@ fn get_aircraft_type_by_capture(captures: &Captures, name: &str) -> Option<Aircr
      * and "aa" is the address type. As we only need "tttt", we shift the whole number two
      * digits to the left and just care for the lowest four bytes. */
 
-    if value & 0b1000_0000 > 0 {
-        /* This should *NEVER* happen! */
-        panic!("Line to be parsed has stealth mode active");
-    }
+    /* This should *NEVER* happen! */
+    assert_eq!(
+        value & 0b1000_0000,
+        0,
+        "Line to be parsed has stealth mode active"
+    );
 
-    if value & 0b0100_0000 > 0 {
-        /* This should *NEVER* happen! */
-        panic!("Line to be parsed has no-tracking mode active");
-    }
+    /* This should *NEVER* happen! */
+    assert_eq!(
+        value & 0b0100_0000,
+        0,
+        "Line to be parsed has no-tracking mode active"
+    );
 
     let aircraft_type_value = (value >> 2) & 0b1111;
     AircraftType::from_aprs_u8(aircraft_type_value)

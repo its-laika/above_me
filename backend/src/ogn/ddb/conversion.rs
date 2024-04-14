@@ -42,10 +42,10 @@ pub fn convert(line: &str) -> Option<Aircraft> {
         return None;
     }
 
-    let model = if fields[INDEX_TYPE] != TYPE_UNKNOWN {
-        get_as_option(fields[INDEX_TYPE])
-    } else {
+    let model = if fields[INDEX_TYPE] == TYPE_UNKNOWN {
         None
+    } else {
+        get_as_option(fields[INDEX_TYPE])
     };
 
     Some(Aircraft {
@@ -70,10 +70,10 @@ pub fn convert(line: &str) -> Option<Aircraft> {
 /// assert!(get_as_option("Value").is_some_and(|v|v == "Value"));
 /// ```
 fn get_as_option(value: &str) -> Option<String> {
-    if !value.is_empty() {
-        Some(String::from(value))
-    } else {
+    if value.is_empty() {
         None
+    } else {
+        Some(String::from(value))
     }
 }
 
