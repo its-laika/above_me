@@ -113,6 +113,10 @@ impl App {
     /// # Arguments
     ///
     /// * `timestamp` - Timestamp of latest APRS update
+    ///
+    /// # Examples
+    ///
+    /// * test `state::get_overview_works`
     pub fn push_last_aprs_update_timestamp(&self, timestamp: u64) {
         self.last_aprs_update.store(timestamp, Ordering::Relaxed);
     }
@@ -306,12 +310,17 @@ mod tests {
             current_timestamp,
         ));
 
+        sut.push_last_aprs_update_timestamp(current_timestamp);
+
         let result_filled = sut.get_overview();
 
         assert_eq!(result_empty.count, 0);
         assert_eq!(result_empty.last_status_update, None);
+        assert_eq!(result_empty.last_aprs_update, None);
+
         assert_eq!(result_filled.count, 2);
         assert_eq!(result_filled.last_status_update, Some(current_timestamp));
+        assert_eq!(result_filled.last_aprs_update, Some(current_timestamp));
     }
 
     fn create_status(aircraft_id: String, position: Position, time_stamp: u64) -> Status {
