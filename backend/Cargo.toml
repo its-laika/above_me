@@ -1,13 +1,13 @@
 [package]
 name = "above_me"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Niklas 'Curly' Schmidt <36010519+neon-JS@users.noreply.github.com>"]
 description = "This project contains the backend for above_me, a service that lets you see what aircraft are currently flying above you."
 readme = "../README.md"
 repository = "https://github.com/neon-JS/above_me"
 license = "MIT"
-keywords = ["ogn", "openglidernet", "open-glider-net", "aircraft", "glider", "planes"]
+keywords = ["ogn", "openglidernet", "open-glider-net", "aircraft", "glider"]
 exclude = ["Dockerfile", "target/"]
 
 [dependencies]
