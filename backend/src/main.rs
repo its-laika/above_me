@@ -1,5 +1,6 @@
 use log::{error, info};
 use tokio::{
+    select,
     sync::{mpsc, oneshot},
     task::JoinSet,
 };
@@ -44,6 +45,7 @@ async fn main() {
 
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
     let (status_tx, mut status_rx) = mpsc::channel(32);
+    let (line_received_tx, mut line_received_rx) = mpsc::channel(32);
 
     let app = api::App::create();
     let app_update = app.clone();
@@ -62,7 +64,8 @@ async fn main() {
         info!("Initializing APRS client...");
 
         loop {
-            if let Err(e) = aprs::init(&config.aprs, &status_tx, &aircraft).await {
+            if let Err(e) = aprs::init(&config.aprs, &status_tx, &line_received_tx, &aircraft).await
+            {
                 error!("Client stopped with error: {e}");
                 break;
             }
@@ -77,8 +80,16 @@ async fn main() {
     join_set.spawn(async move {
         info!("Initializing updates from client to API...");
 
-        while let Some(status) = status_rx.recv().await {
-            app_update.push_status(status);
+        loop {
+            select! {
+                Some(status) = status_rx.recv() => {
+                    app_update.push_status(status);
+                },
+                Some(timestamp) = line_received_rx.recv() => {
+                    app_update.push_last_aprs_update_timestamp(timestamp);
+                },
+                else => break
+            }
         }
 
         info!("Updates from client to API stopped");

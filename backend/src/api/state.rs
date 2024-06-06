@@ -1,6 +1,9 @@
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, Mutex, MutexGuard,
+    },
 };
 
 use serde::Serialize;
@@ -18,6 +21,8 @@ const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
 pub struct App {
     /// Reference to all currently stored states
     states: Arc<Mutex<HashMap<String, Status>>>,
+    /// Timestamp of last APRS line received
+    last_aprs_update: Arc<AtomicU64>,
 }
 
 /// DTO for status overview
@@ -25,8 +30,10 @@ pub struct App {
 pub struct Overview {
     /// Number of currently stored states
     pub count: usize,
-    /// Timestamp of last update, if states is not empty
-    pub last_update: Option<u64>,
+    /// Timestamp of last status update, if states is not empty
+    pub last_status_update: Option<u64>,
+    /// Timestamp of last APRS update received
+    pub last_aprs_update: Option<u64>,
 }
 
 impl App {
@@ -42,6 +49,7 @@ impl App {
     pub fn create() -> App {
         App {
             states: Arc::new(Mutex::new(HashMap::new())),
+            last_aprs_update: Arc::new(AtomicU64::new(0)),
         }
     }
 
@@ -100,22 +108,36 @@ impl App {
         states.insert(new_status.aircraft.id.clone(), new_status);
     }
 
+    /// Updates timestamp of latest APRS update in the `App`
+    ///
+    /// # Arguments
+    ///
+    /// * `timestamp` - Timestamp of latest APRS update
+    pub fn push_last_aprs_update_timestamp(&self, timestamp: u64) {
+        self.last_aprs_update.store(timestamp, Ordering::Relaxed);
+    }
+
     /// Returns an overview of the currently stored states
     ///
     /// # Examples
     ///
     /// * test `state::get_overview_works`
     pub fn get_overview(&self) -> Overview {
-        let mut states = self.states.lock().expect("Mutex was poisoned");
+        /* Shortcut: As AtomicU64 seems to be the best choice for a shared timestamp value,
+         * we can't use an `Option` directly in the `App`. But as the timestamp is initialized
+         * with 0, we can just convert the 0 to `None`. */
+        let last_aprs_update = match self.last_aprs_update.load(Ordering::Relaxed) {
+            0 => None,
+            v => Some(v),
+        };
 
+        let mut states = self.states.lock().expect("Mutex was poisoned");
         App::remove_outdated_states(&mut states);
 
         Overview {
             count: states.len(),
-            last_update: states
-                .values()
-                .max_by(|s1, s2| s1.time_stamp.cmp(&s2.time_stamp))
-                .map(|s| s.time_stamp),
+            last_status_update: states.values().map(|s| s.time_stamp).max(),
+            last_aprs_update,
         }
     }
 
@@ -287,9 +309,9 @@ mod tests {
         let result_filled = sut.get_overview();
 
         assert_eq!(result_empty.count, 0);
-        assert_eq!(result_empty.last_update, None);
+        assert_eq!(result_empty.last_status_update, None);
         assert_eq!(result_filled.count, 2);
-        assert_eq!(result_filled.last_update, Some(current_timestamp));
+        assert_eq!(result_filled.last_status_update, Some(current_timestamp));
     }
 
     fn create_status(aircraft_id: String, position: Position, time_stamp: u64) -> Status {
