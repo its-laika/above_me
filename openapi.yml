@@ -8,7 +8,7 @@ info:
   license:
     name: MIT License
     url: https://opensource.org/license/mit
-  version: "0.1.2"
+  version: "0.1.3"
 externalDocs:
   description: Repository
   url: https://github.com/neon-JS/above_me
