@@ -125,6 +125,7 @@ components:
           format: int32
           examples: [132]
           description: Speed of aircraft in _km/h_
+          minimum: 0
         vertical_speed:
           type:
             - number
@@ -153,11 +154,14 @@ components:
           format: int32
           examples: [152]
           description: Course of aircraft
+          minimum: 0
+          maximum: 360
         time_stamp:
           type: integer
           format: int64
           examples: [670932000]
           description: Unix timestamp of latest aircraft status
+          minimum: 0
     Aircraft:
       type: object
       properties:
@@ -205,8 +209,20 @@ components:
           type: integer
           examples: [40]
           description: Number of currently stored states
-        last_update:
-          type: integer
+          minimum: 0
+        last_status_update:
+          type:
+            - integer
+            - "null"
           format: int64
           examples: [670932000]
           description: Unix timestamp of latest incoming state
+          minimum: 0
+        last_aprs_update:
+          type:
+            - integer
+            - "null"
+          format: int64
+          examples: [670932000]
+          description: Unix timestamp of latest incoming APRS server message
+          minimum: 0
