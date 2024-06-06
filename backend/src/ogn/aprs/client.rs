@@ -51,6 +51,8 @@ pub struct Config<A: ToSocketAddrs> {
 ///
 /// * `config` - Information on where to connect & login
 /// * `status_tx` - A `Sender<String>` that will send incoming states from the server
+/// * `line_received_tx` - A `Sender<u64>` that will send timestamps of incoming APRS
+///    lines from the server
 /// * `aircraft` - Mapping of `AircraftId` => `Aircraft`, necessary for conversion
 ///
 /// # Returns
@@ -66,10 +68,11 @@ pub struct Config<A: ToSocketAddrs> {
 ///
 /// let config = aprs::ClientConfig { ... };
 /// let (status_tx, status_rx) = channel(32);
+/// let (line_received_tx, line_received_rx) = channel(32);
 /// let aircraft: HashMap<AircraftId, Aircraft> = HashMap::new();
 ///
 /// spawn(async move {
-///     aprs::init(&config, &status_tx, &aircraft)
+///     aprs::init(&config, &status_tx, &line_received_tx, &aircraft)
 ///         .await
 ///         .expect("Client failed");
 /// });
@@ -81,6 +84,7 @@ pub struct Config<A: ToSocketAddrs> {
 pub async fn init<A: ToSocketAddrs>(
     config: &Config<A>,
     status_tx: &Sender<Status>,
+    line_received_tx: &Sender<u64>,
     aircraft: &HashMap<AircraftId, Aircraft>,
 ) -> Result<(), Error> {
     let mut tcp_stream = TcpStream::connect(&config.address).await?;
@@ -125,13 +129,22 @@ pub async fn init<A: ToSocketAddrs>(
             }
         };
 
+        let current_timestamp = get_current_timestamp();
+
         debug!("Got line: '{line}'");
+
+        line_received_tx
+            .send(current_timestamp)
+            .await
+            .or(Err(Error::new(
+                ErrorKind::Other,
+                "Could not send line received timestamp",
+            )))?;
 
         /* APRS server sends a keep alive ever 20 - 30 seconds. As we don't want to worry about
          * *another* async interval shit, we just check if the last keep alive was 10 - 11 minutes
          * ago and, if so, send a new one. We won't run into a timeout if we're 30 seconds late,
          * so KISS FTW. */
-        let current_timestamp = get_current_timestamp();
         if current_timestamp - last_keep_alive_timestamp >= KEEPALIVE_INTERVAL_SECONDS {
             last_keep_alive_timestamp = current_timestamp;
 
