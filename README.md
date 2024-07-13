@@ -42,9 +42,8 @@ API-Documentation: [openapi.yml](openapi.yml)
 [![Docker backend - build & push](https://github.com/neon-JS/above_me/actions/workflows/docker-backend.yml/badge.svg)](https://github.com/neon-JS/above_me/actions/workflows/docker-backend.yml)  
 [![Docker frontend - build & push](https://github.com/neon-JS/above_me/actions/workflows/docker-frontend.yml/badge.svg)](https://github.com/neon-JS/above_me/actions/workflows/docker-frontend.yml)
 
-This project is up and running. Currently, there are some bugs and missing features.
-It's still in active development as I use it quite frequently.
-For concrete TODOs, see [TODO.md](TODO.md).
+This project is up and running. I'd say it's "feature-complete" for my use-case.
+I'll maybe start building a nicer frontend sometimes. (see [TODO.md](TODO.md))
 
 ## License
 This code is licensed under the MIT-License (see [LICENSE](LICENSE)). Before using it, make sure to not violate against OGN rules:
