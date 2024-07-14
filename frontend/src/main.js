@@ -33,7 +33,8 @@ function submit(event) {
                     longitude_text: formatCoordinateValue(s.position.longitude, 'E', 'W'),
                     latitude_text: formatCoordinateValue(s.position.latitude, 'N', 'S'),
                 },
-                time_diff: formatTimeDiff(s.time_stamp, currentTimestamp)
+                time_diff: formatTimeDiff(s.time_stamp, currentTimestamp),
+                distance: s.distance.toFixed(0),
             })
             ))
         .then(states =>

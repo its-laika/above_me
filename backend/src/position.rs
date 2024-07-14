@@ -13,7 +13,7 @@ pub struct Position {
     pub longitude: f32,
 }
 
-/// Calculates the distance of two given positions
+/// Calculates the distance of two given positions in km.
 ///
 /// # Arguments
 ///

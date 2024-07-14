@@ -1,11 +1,8 @@
 use std::fmt::{Display, Formatter, Result};
 
-use serde::Serialize;
-
 use crate::{ogn::Aircraft, position::Position};
 
 /// Representation of an aircraft status
-#[derive(Clone, Serialize)]
 pub struct Status {
     /// Affected aircraft
     pub aircraft: Aircraft,

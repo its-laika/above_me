@@ -14,6 +14,8 @@ use crate::{
     time::get_current_timestamp,
 };
 
+use super::routes::aircraft::StatusDto;
+
 const MAX_AGE_DIFF: u64 = 60 * 5; /* 5 minutes */
 
 /// Our shared application state for the API
@@ -53,7 +55,7 @@ impl App {
         }
     }
 
-    /// Returns the states in the `App` that match given filters
+    /// Returns the states in the `App` that match given filters as dtos.
     ///
     /// # Arguments
     /// * `position` - The position that should be searched for
@@ -61,33 +63,34 @@ impl App {
     ///
     /// # Returns
     ///
-    /// Returns the states within `range` around given `position`, sorted in ascending oder by
-    /// distance to `position`.
+    /// Returns dtos of the states within `range` around given `position`, sorted in ascending
+    /// oder by distance to `position`.
     ///
     /// # Examples
     ///
     /// * test `state::get_filtered_states_checks_age`
     /// * test `state::get_filtered_states_checks_range`
     /// * test `state::get_filtered_states_orders_correctly`
-    pub fn get_filtered_states(&self, position: &Position, range: f32) -> Vec<Status> {
+    pub fn get_filtered_status_dtos(&self, position: &Position, range: f32) -> Vec<StatusDto> {
         let mut states = self.states.lock().expect("Mutex was poisoned");
 
         App::remove_outdated_states(&mut states);
 
-        let mut states_with_distance = states
+        let mut status_dtos = states
             .values()
             .map(|status| (status, calculate_distance(position, &status.position)))
             .filter(|&(_, distance)| distance <= range)
-            .collect::<Vec<(&Status, f32)>>();
+            .map(|(status, distance)| StatusDto::from(status, distance))
+            .collect::<Vec<StatusDto>>();
 
-        states_with_distance.sort_unstable_by(|(_, distance1), (_, distance2)| {
-            distance1.partial_cmp(distance2).unwrap()
+        status_dtos.sort_unstable_by(|status_dto_1, status_dto_2| {
+            status_dto_1
+                .distance
+                .partial_cmp(&status_dto_2.distance)
+                .unwrap()
         });
 
-        states_with_distance
-            .iter()
-            .map(|&(status, _)| status.clone())
-            .collect::<Vec<Status>>()
+        status_dtos
     }
 
     /// Stores / updates a new status in the `App`
@@ -172,7 +175,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_filtered_states_checks_age() {
+    fn get_filtered_status_dtos_checks_age() {
         let sut = App::create();
         let current_timestamp = get_current_timestamp();
         let outdated_timestamp = current_timestamp - MAX_AGE_DIFF - 1;
@@ -193,13 +196,13 @@ mod tests {
             outdated_timestamp,
         ));
 
-        let result = sut.get_filtered_states(&position, 1.0);
+        let result = sut.get_filtered_status_dtos(&position, 1.0);
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].aircraft.id, "AB1234");
     }
 
     #[test]
-    fn get_filtered_states_checks_range() {
+    fn get_filtered_status_dtos_checks_range() {
         let sut = App::create();
         let current_timestamp = get_current_timestamp();
 
@@ -233,7 +236,7 @@ mod tests {
             current_timestamp,
         ));
 
-        let result = sut.get_filtered_states(&position, 4.0);
+        let result = sut.get_filtered_status_dtos(&position, 4.0);
 
         assert_eq!(result.len(), 2);
         assert!(result.iter().any(|s| s.aircraft.id == "AB1234"));
@@ -241,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn get_filtered_states_orders_correctly() {
+    fn get_filtered_status_dtos_orders_correctly() {
         let sut = App::create();
         let current_timestamp = get_current_timestamp();
 
@@ -277,7 +280,7 @@ mod tests {
             current_timestamp,
         ));
 
-        let result = sut.get_filtered_states(&position, 4.0);
+        let result = sut.get_filtered_status_dtos(&position, 4.0);
 
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].aircraft.id, "AB1234");

@@ -3,6 +3,7 @@
     <thead>
         <tr class="table-dark">
             <th scope="col">Id</th>
+            <th scope="col">Distance</th>
             <th scope="col">Altitude</th>
             <th scope="col">Speed</th>
             <th scope="col">Course</th>
@@ -16,6 +17,7 @@
                 <b>Registration</b> (call sign)<br>
                 Model / type
             </th>
+            <th scope="col">km</th>
             <th scope="col">m</th>
             <th scope="col">km/h</th>
             <th scope="col">°</th>
@@ -42,6 +44,10 @@
                 {{#if aircraft.model}}<br>{{/if}}
                 {{aircraft.model}}
                 {{/unless}}
+            </td>
+            <td class="variable-value">
+                {{#if distance}}{{distance}}{{/if}}
+                {{#unless distance}}-{{/unless}}
             </td>
             <td class="variable-value">
                 {{#if altitude}}{{altitude}}{{/if}}
