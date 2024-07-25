@@ -1,7 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 use log::debug;
-use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 
 use crate::{
@@ -34,7 +33,7 @@ const FACTOR_FT_MIN_TO_M_SEC: f32 = 0.00508;
 /// Factor to convert "turns/2min" to "turns/min"
 const FACTOR_TURNS_TWO_MIN_TO_TURNS_MIN: f32 = 0.5;
 
-static LINE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(LINE_PATTERN).unwrap());
+static LINE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(LINE_PATTERN).unwrap());
 
 /// Tries converting an APRS line into a `Status`
 ///

@@ -10,7 +10,6 @@ dependencies = [
  "config",
  "env_logger",
  "log",
- "once_cell",
  "regex",
  "reqwest",
  "serde",
