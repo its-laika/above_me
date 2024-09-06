@@ -38,9 +38,9 @@ The website contains links to _privacy-policy.html_. You can (and should) set up
 API-Documentation: [openapi.yml](openapi.yml)
 
 ## Status
-[![Cargo test & clippy](https://github.com/neon-JS/above_me/actions/workflows/cargo.yml/badge.svg)](https://github.com/neon-JS/above_me/actions/workflows/cargo.yml)  
-[![Docker backend - build & push](https://github.com/neon-JS/above_me/actions/workflows/docker-backend.yml/badge.svg)](https://github.com/neon-JS/above_me/actions/workflows/docker-backend.yml)  
-[![Docker frontend - build & push](https://github.com/neon-JS/above_me/actions/workflows/docker-frontend.yml/badge.svg)](https://github.com/neon-JS/above_me/actions/workflows/docker-frontend.yml)
+[![Cargo test & clippy](https://github.com/its-laika/above_me/actions/workflows/cargo.yml/badge.svg)](https://github.com/its-laika/above_me/actions/workflows/cargo.yml)  
+[![Docker backend - build & push](https://github.com/its-laika/above_me/actions/workflows/docker-backend.yml/badge.svg)](https://github.com/its-laika/above_me/actions/workflows/docker-backend.yml)  
+[![Docker frontend - build & push](https://github.com/its-laika/above_me/actions/workflows/docker-frontend.yml/badge.svg)](https://github.com/its-laika/above_me/actions/workflows/docker-frontend.yml)
 
 This project is up and running. I'd say it's "feature-complete" for my use-case.
 I'll maybe start building a nicer frontend sometimes. (see [TODO.md](TODO.md))

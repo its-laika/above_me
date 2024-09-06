@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neon-JS/above_me.git"
+    "url": "git+https://github.com/its-laika/above_me.git"
   },
   "keywords": [
     "ogn",
@@ -20,12 +20,12 @@
     "aircraft",
     "glider"
   ],
-  "author": "Niklas 'Curly' Schmidt",
+  "author": "Niklas Schmidt",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/neon-JS/above_me/issues"
+    "url": "https://github.com/its-laika/above_me/issues"
   },
-  "homepage": "https://github.com/neon-JS/above_me#readme",
+  "homepage": "https://github.com/its-laika/above_me#readme",
   "dependencies": {
     "bootstrap": "^5.3.3",
     "handlebars": "^4.7.8"

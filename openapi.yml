@@ -4,14 +4,14 @@ info:
   description: |-
     The above_me API allows you to fetch information about aircraft for a given position based on the [Open Glider Network](http://wiki.glidernet.org/) data.
   contact:
-    email: 36010519+neon-JS@users.noreply.github.com
+    email: 36010519+its-laika@users.noreply.github.com
   license:
     name: MIT License
     url: https://opensource.org/license/mit
   version: "0.1.4"
 externalDocs:
   description: Repository
-  url: https://github.com/neon-JS/above_me
+  url: https://github.com/its-laika/above_me
 tags:
   - name: aircaft
     description: Information about aircraft

@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/neon-js/above_me-backend:main
+    image: ghcr.io/its-laika/above_me-backend:main
     # build:
     # Use this if you want to use your self built version.
     # context: ../backend
@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
   frontend:
-    image: ghcr.io/neon-js/above_me-frontend:main
+    image: ghcr.io/its-laika/above_me-frontend:main
     # build:
     # Use this if you want to use your self built version.
     # context: ../frontend
