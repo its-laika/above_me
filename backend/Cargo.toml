@@ -11,7 +11,7 @@ keywords = ["ogn", "openglidernet", "open-glider-net", "aircraft", "glider"]
 exclude = ["Dockerfile", "target/"]
 
 [dependencies]
-axum = "0.7.5"
+axum = "0.7.6"
 config = "0.14.0"
 regex = { version = "1.10.6", features = ["std"] }
 reqwest = "0.12"
