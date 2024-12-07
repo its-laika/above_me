@@ -2,7 +2,7 @@
 name = "above_me"
 version = "0.1.4"
 edition = "2021"
-authors = ["Niklas Schmidt <36010519+its-laika@users.noreply.github.com>"]
+authors = ["Laika Schmidt <36010519+its-laika@users.noreply.github.com>"]
 description = "This project contains the backend for above_me, a service that lets you see what aircraft are currently flying above you."
 readme = "../README.md"
 repository = "https://github.com/its-laika/above_me"
