@@ -12,7 +12,7 @@ exclude = ["Dockerfile", "target/"]
 
 [dependencies]
 axum = "0.8.1"
-config = "0.15.5"
+config = "0.15.6"
 regex = { version = "1.11.1", features = ["std"] }
 reqwest = "0.12"
 serde = { version = "1.0", features = ["derive"] }
