@@ -1,11 +1,7 @@
-use log::{error, info};
-use tokio::{
-    select,
-    sync::{mpsc, oneshot},
-    task::JoinSet,
-};
-
 use crate::ogn::{aprs, ddb::fetch_aircraft};
+use laika::shotgun;
+use log::{error, info};
+use tokio::{select, sync::mpsc, task::JoinSet};
 
 mod api;
 mod config;
@@ -43,7 +39,7 @@ async fn main() {
 
     let mut join_set = JoinSet::new();
 
-    let (shutdown_tx, shutdown_rx) = oneshot::channel();
+    let (shutdown_tx, shutdown_rx) = shotgun::channel();
     let (status_tx, mut status_rx) = mpsc::channel(32);
     let (line_received_tx, mut line_received_rx) = mpsc::channel(32);
 
@@ -74,7 +70,7 @@ async fn main() {
             info!("Client disconnected. Reconnecting...");
         }
 
-        shutdown_tx.send(()).unwrap();
+        shutdown_tx.send(());
     });
 
     join_set.spawn(async move {

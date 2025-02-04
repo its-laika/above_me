@@ -1,8 +1,8 @@
-use std::io::Error;
-
 use axum::{routing::get, Router};
+use laika::shotgun;
 use log::info;
-use tokio::{net::TcpListener, net::ToSocketAddrs, sync::oneshot};
+use std::io::Error;
+use tokio::{net::TcpListener, net::ToSocketAddrs};
 
 use super::routes::{aircraft, overview};
 use super::state::App;
@@ -13,7 +13,7 @@ use super::state::App;
 ///
 /// * `address` - The address that the server will bind to
 /// * `app` - The `App` that the API will use for its data
-/// * `shutdown_rx` - A oneshot `Receiver<()>` that will shut down the server gracefully when a
+/// * `shutdown_rx` - A shotgun `Receiver<()>` that will shut down the server gracefully when a
 ///    message is received.
 ///
 /// # Returns
@@ -39,13 +39,13 @@ use super::state::App;
 /// // Shuts down API server
 /// shutdown_tx.send(()).unwrap();
 /// ```
-pub async fn init<'a, A: ToSocketAddrs>(
+pub async fn init<A: ToSocketAddrs>(
     address: &A,
     app: App,
-    shutdown_rx: oneshot::Receiver<()>,
+    shutdown_rx: shotgun::Receiver<()>,
 ) -> Result<(), Error> {
     let app = Router::new()
-        .route("/r/:latitude/:longitude/:range", get(aircraft::handler))
+        .route("/r/{latitude}/{longitude}/{range}", get(aircraft::handler))
         .route("/status", get(overview::handler))
         .with_state(app);
 
@@ -53,7 +53,7 @@ pub async fn init<'a, A: ToSocketAddrs>(
 
     axum::serve(listener, app)
         .with_graceful_shutdown(async {
-            shutdown_rx.await.ok();
+            shutdown_rx.await;
             info!("API received shutdown signal");
         })
         .await?;
